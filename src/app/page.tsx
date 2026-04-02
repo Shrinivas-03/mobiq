@@ -6,6 +6,7 @@ import WelcomeSection from "@/components/WelcomeSection";
 import Testimonials from "@/components/Testimonials";
 import FaqAccordion from "@/components/FaqAccordion";
 import Footer from "@/components/Footer";
+import FadeIn from "@/components/FadeIn";
 
 export default function Home() {
   return (
@@ -15,10 +16,10 @@ export default function Home() {
       
       <main className="flex flex-col w-full overflow-hidden">
         <Hero />
-        <Brands />
-        <WelcomeSection />
-        <Testimonials />
-        <FaqAccordion />
+        <FadeIn><Brands /></FadeIn>
+        <FadeIn><WelcomeSection /></FadeIn>
+        <FadeIn><Testimonials /></FadeIn>
+        <FadeIn><FaqAccordion /></FadeIn>
       </main>
 
       <Footer />

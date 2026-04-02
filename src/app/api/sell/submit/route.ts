@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
 import { sendSellConfirmationEmail } from "@/lib/email";
+import { calculatePrice } from "@/lib/pricing";
 
 // ──────────────────────────────────────────────
 // TYPES
@@ -79,6 +80,41 @@ export async function POST(request: Request) {
       );
     }
 
+    // ── Server-side price validation ──
+    // Recompute the price independently — never trust the client-submitted quotedPrice.
+    const priceResult = calculatePrice({
+      modelId:        body.modelId,
+      brandId:        body.brandId,
+      variantId:      body.variantId,
+      mobileTurnsOn:  body.mobileTurnsOn,
+      accessories:    body.accessories,
+      hardwareDefects: body.hardwareDefects,
+      softwareDefects: body.softwareDefects,
+      batteryHealth:  body.batteryHealth,
+      batteryQuality: body.batteryQuality,
+      deviceAge:      body.deviceAge,
+    });
+
+    if (!priceResult.success) {
+      return NextResponse.json(
+        { success: false, error: `Price validation failed: ${priceResult.error}` },
+        { status: 422 }
+      );
+    }
+
+    const serverPrice = priceResult.finalPrice;
+
+    // Allow a ±1 rupee tolerance (integer rounding edge cases), reject anything beyond that.
+    if (Math.abs(body.quotedPrice - serverPrice) > 1) {
+      console.warn(
+        `[/api/sell/submit] Price tamper detected — client sent ₹${body.quotedPrice}, server computed ₹${serverPrice}`
+      );
+      return NextResponse.json(
+        { success: false, error: "Quoted price mismatch. Please restart the sell flow and try again." },
+        { status: 422 }
+      );
+    }
+
     // ── Build the row for Supabase ──
     const leadRow = {
       // Customer
@@ -109,8 +145,8 @@ export async function POST(request: Request) {
       battery_quality:    body.batteryQuality ?? null,
       device_age:         body.deviceAge,
 
-      // Quote
-      quoted_price: body.quotedPrice,
+      // Quote — always use the server-computed price, never the client value
+      quoted_price: serverPrice,
 
       // Status (for admin tracking)
       status: "pending",
@@ -119,7 +155,7 @@ export async function POST(request: Request) {
     const { data, error } = await supabase
       .from("sell_leads")
       .insert(leadRow)
-      .select("id")
+      .select("id, quoted_price")
       .single();
 
     if (error) {
@@ -153,7 +189,7 @@ export async function POST(request: Request) {
       batteryHealth:  body.batteryHealth,
       batteryQuality: body.batteryQuality,
       isApple:     body.brandId === "apple",
-      quotedPrice: body.quotedPrice,
+      quotedPrice: serverPrice,
     }).catch((emailErr) => {
       // Log email failures but don't surface them to the customer
       console.error("[/api/sell/submit] Email sending failed:", emailErr);
@@ -162,6 +198,7 @@ export async function POST(request: Request) {
     return NextResponse.json({
       success: true,
       leadId,
+      quotedPrice: data.quoted_price,
       message: "Your sell request has been received. Our team will contact you shortly!",
     });
 

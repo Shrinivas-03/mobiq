@@ -65,7 +65,7 @@ export default function Hero() {
         >
           <div className="absolute inset-0 flex items-center justify-center translate-x-10">
              <motion.div animate={{y: [0, -10, 0]}} transition={{repeat: Infinity, duration: 6, ease: "easeInOut"}} className="relative w-full h-[500px]">
-                <Image src="/hero-devices.png" alt="MobiQ Devices" fill className="object-contain drop-shadow-2xl" priority />
+                <Image src="/hero-devices.png" alt="MobiQ Devices" fill sizes="(max-width: 768px) 100vw, 50vw" className="object-contain drop-shadow-2xl" priority />
              </motion.div>
           </div>
         </motion.div>

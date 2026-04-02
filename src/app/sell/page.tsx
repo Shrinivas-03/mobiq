@@ -247,6 +247,11 @@ function SellFlow() {
   const [priceError, setPriceError] = useState<string | null>(null);
   const [submitLoading, setSubmitLoading] = useState(false);
   const [leadId, setLeadId] = useState<string | null>(null);
+  const [confirmedPrice, setConfirmedPrice] = useState<number | null>(null);
+
+  // Best-case estimate shown on the Estimate step (before condition questions)
+  const [baseEstimate, setBaseEstimate] = useState<number | null>(null);
+  const [baseEstimateLoading, setBaseEstimateLoading] = useState(false);
 
   // Form State
   const [formData, setFormData] = useState({
@@ -329,6 +334,34 @@ function SellFlow() {
       }
     }
   }, [initialBrand, step, selectedBrand]);
+
+  // Fetch a best-case estimate when the user reaches the Estimate step
+  useEffect(() => {
+    if (step !== "estimate" || !selectedModel || !selectedBrand || !selectedVariant) return;
+    setBaseEstimate(null);
+    setBaseEstimateLoading(true);
+    fetch("/api/sell/calculate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        modelId:   selectedModel.id,
+        brandId:   selectedBrand,
+        variantId: selectedVariant.id,
+        mobileTurnsOn: true,
+        accessories: { box: true, charger: true, invoice: true, warranty: true },
+        hardwareDefects: [],
+        softwareDefects: [],
+        batteryHealth:  selectedBrand === "apple" ? 100 : null,
+        batteryQuality: selectedBrand !== "apple" ? "High" : null,
+        deviceAge: "0_3",
+      }),
+    })
+      .then((r) => r.json())
+      .then((d) => { if (d.success) setBaseEstimate(d.finalPrice); })
+      .catch(() => { /* silent — we just won't show the estimate */ })
+      .finally(() => setBaseEstimateLoading(false));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [step]);
 
   const goBack = () => {
     if (currentStepIndex > 0 && step !== "thank_you") {
@@ -501,10 +534,22 @@ function SellFlow() {
                     <div className="absolute top-0 right-0 w-32 h-32 bg-green-500/10 rounded-full blur-3xl -mr-10 -mt-10"></div>
                     <Banknote className="w-12 h-12 text-green-500 mx-auto mb-4" />
                     <h2 className="text-gray-500 font-bold mb-2 uppercase tracking-wide">Expected Value</h2>
-                    <div className="text-5xl font-black text-blue-950 mb-4">₹{"Best Price Guaranteed"}</div>
+                    {baseEstimateLoading ? (
+                      <div className="flex justify-center items-center h-14 mb-4">
+                        <div className="w-8 h-8 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin" />
+                      </div>
+                    ) : baseEstimate ? (
+                      <div className="mb-4">
+                        <p className="text-sm text-green-700 font-semibold mb-1">Up to</p>
+                        <div className="text-5xl font-black text-blue-950">₹{baseEstimate.toLocaleString("en-IN")}</div>
+                        <p className="text-xs text-gray-400 mt-1">Based on perfect condition — final price depends on your answers below</p>
+                      </div>
+                    ) : (
+                      <div className="text-4xl font-black text-blue-950 mb-4">Best Price Guaranteed</div>
+                    )}
                     <p className="text-sm text-red-500 bg-red-50 py-2 px-4 rounded-xl flex items-center justify-center gap-2 font-medium border border-red-100">
-                      <HelpCircle className="w-4 h-4"/>
-                      Price may differ based on the condition of the mobile.
+                       <HelpCircle className="w-4 h-4"/>
+                       Price may differ based on the condition of the mobile.
                     </p>
                  </div>
                  <div className="mb-10 text-left">
@@ -799,6 +844,7 @@ function SellFlow() {
                            const data = await res.json();
                            if (data.success) {
                              setLeadId(data.leadId);
+                             setConfirmedPrice(data.quotedPrice ?? displayPrice);
                              setStep("thank_you");
                            } else {
                              setFormErrors(p => ({ ...p, name: data.error || "Submission failed. Please try again." }));
@@ -843,7 +889,7 @@ function SellFlow() {
                     <div>
                       <p className="font-bold text-amber-800 mb-1">Price Disclaimer</p>
                       <p className="text-amber-700 text-sm leading-relaxed">
-                        The quoted price of <strong>&#8377;{displayPrice.toLocaleString()}</strong> is based on the details you provided. If our technician finds any <strong>unreported defects</strong>, inaccurate condition details, or <strong>missing accessories</strong> during physical inspection, <strong>the final offered price may be revised downward</strong>. Please ensure all details are accurate to avoid any difference at pickup.
+                        The quoted price of <strong>&#8377;{(confirmedPrice ?? displayPrice).toLocaleString()}</strong> is based on the details you provided. If our technician finds any <strong>unreported defects</strong>, inaccurate condition details, or <strong>missing accessories</strong> during physical inspection, <strong>the final offered price may be revised downward</strong>. Please ensure all details are accurate to avoid any difference at pickup.
                       </p>
                     </div>
                   </div>

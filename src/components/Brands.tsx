@@ -22,7 +22,7 @@ export default function Brands() {
           All Top Brands
         </h2>
 
-        <div className="flex gap-6 sm:gap-12 flex-wrap items-center">
+        <div className="flex gap-6 sm:gap-12 flex-wrap items-center justify-center sm:justify-start">
           {brands.map((brand) => (
             <Link 
               href={`/sell?brand=${brand.id}`}
@@ -33,6 +33,7 @@ export default function Brands() {
                 src={brand.src} 
                 alt={`${brand.name} logo`} 
                 fill 
+                sizes="(max-width: 768px) 128px, 192px"
                 className="object-contain p-6 group-hover:scale-110 transition-transform duration-300" 
               />
             </Link>

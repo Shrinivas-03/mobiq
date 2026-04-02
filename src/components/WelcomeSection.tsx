@@ -38,7 +38,7 @@ export default function WelcomeSection() {
           
           <div className="relative z-10 w-full h-full max-w-md bg-white border border-gray-100 shadow-2xl rounded-2xl overflow-hidden flex flex-col justify-between">
             <div className="w-full h-full relative">
-                <Image src="/welcome-devices.png" alt="Devices supported by MobiQ" fill className="object-cover" />
+                <Image src="/welcome-devices.png" alt="Devices supported by MobiQ" fill sizes="(max-width: 768px) 100vw, 50vw" className="object-cover" />
             </div>
             <div className="text-center py-4 bg-white/95 backdrop-blur-sm shadow-[0_-10px_10px_rgba(0,0,0,0.05)] absolute bottom-0 w-full text-gray-500 text-sm font-medium">Multiple Devices Supported</div>
           </div>
