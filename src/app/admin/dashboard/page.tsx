@@ -14,7 +14,11 @@ import {
   XCircle,
   Menu,
   X,
-  Eye
+  Eye,
+  Star,
+  Trash2,
+  Plus,
+  Film
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -35,6 +39,13 @@ export default function AdminDashboard() {
   const [invStatusFilter, setInvStatusFilter] = useState('all');
   const [invBrandFilter, setInvBrandFilter] = useState('all');
 
+  // Testimonials tab states
+  const [testimonials, setTestimonials] = useState<any[]>([]);
+  const [newClientName, setNewClientName] = useState('');
+  const [newModelName, setNewModelName] = useState('');
+  const [newInstagramUrl, setNewInstagramUrl] = useState('');
+  const [isSubmittingTestimonial, setIsSubmittingTestimonial] = useState(false);
+
   useEffect(() => {
     // Check auth status
     const checkAuth = async () => {
@@ -46,6 +57,7 @@ export default function AdminDashboard() {
           fetchLeads();
           fetchInventory();
           fetchQueries();
+          fetchTestimonials();
         } else {
           router.push('/admin/login');
         }
@@ -86,6 +98,69 @@ export default function AdminDashboard() {
       const data = await res.json();
       if (data.success) setQueries(data.queries || []);
     } catch (err) { console.error('Error fetching queries:', err); }
+  };
+
+  const fetchTestimonials = async () => {
+    try {
+      const res = await fetch('/api/testimonials');
+      const data = await res.json();
+      if (data.success) setTestimonials(data.testimonials || []);
+    } catch (err) {
+      console.error('Error fetching testimonials:', err);
+    }
+  };
+
+  const handleAddTestimonial = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newClientName.trim() || !newModelName.trim() || !newInstagramUrl.trim()) {
+      alert("All fields are required");
+      return;
+    }
+    setIsSubmittingTestimonial(true);
+    try {
+      const res = await fetch('/api/admin/testimonials', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          client_name: newClientName,
+          model_name: newModelName,
+          instagram_url: newInstagramUrl,
+        }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setNewClientName('');
+        setNewModelName('');
+        setNewInstagramUrl('');
+        fetchTestimonials();
+        alert("Testimonial added successfully!");
+      } else {
+        alert(data.error || "Failed to add testimonial");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Network error");
+    } finally {
+      setIsSubmittingTestimonial(false);
+    }
+  };
+
+  const handleDeleteTestimonial = async (id: string) => {
+    if (!confirm("Are you sure you want to delete this testimonial?")) return;
+    try {
+      const res = await fetch(`/api/admin/testimonials?id=${id}`, {
+        method: 'DELETE',
+      });
+      const data = await res.json();
+      if (data.success) {
+        setTestimonials(prev => prev.filter(t => t.id !== id));
+      } else {
+        alert(data.error || "Failed to delete testimonial");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Network error");
+    }
   };
 
   const updateQueryStatus = async (id: string, status: string) => {
@@ -207,6 +282,7 @@ export default function AdminDashboard() {
     { id: 'leads', label: 'Leads View', icon: Users },
     { id: 'queries', label: 'Support Queries', icon: MessageSquare },
     { id: 'models', label: 'Models in Stock', icon: Smartphone },
+    { id: 'testimonials', label: 'Testimonials', icon: Star },
   ];
 
   // Analytics computations
@@ -692,6 +768,122 @@ export default function AdminDashboard() {
                         )}
                       </tbody>
                     </table>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+
+            {/* TESTIMONIALS TAB */}
+            {activeTab === 'testimonials' && (
+              <motion.div key="testimonials" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="space-y-6">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                  {/* Left Column: Form */}
+                  <div className="bg-white p-6 rounded-2xl shadow-sm border border-zinc-200 h-fit">
+                    <h3 className="text-lg font-bold text-zinc-800 mb-4 flex items-center gap-2">
+                      <Plus className="w-5 h-5 text-blue-600" />
+                      Add Testimonial
+                    </h3>
+                    <form onSubmit={handleAddTestimonial} className="space-y-4">
+                      <div>
+                        <label className="block text-xs font-bold text-zinc-500 uppercase mb-2">Client Name</label>
+                        <input
+                          type="text"
+                          required
+                          value={newClientName}
+                          onChange={e => setNewClientName(e.target.value)}
+                          placeholder="e.g. Shrinivas"
+                          className="w-full text-sm border border-zinc-200 rounded-lg px-3 py-2 bg-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-bold text-zinc-500 uppercase mb-2">Phone Model Sold</label>
+                        <input
+                          type="text"
+                          required
+                          value={newModelName}
+                          onChange={e => setNewModelName(e.target.value)}
+                          placeholder="e.g. iPhone 13 Pro Max"
+                          className="w-full text-sm border border-zinc-200 rounded-lg px-3 py-2 bg-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-bold text-zinc-500 uppercase mb-2">Instagram Reel Link</label>
+                        <input
+                          type="url"
+                          required
+                          value={newInstagramUrl}
+                          onChange={e => setNewInstagramUrl(e.target.value)}
+                          placeholder="e.g. https://www.instagram.com/reel/CtO..."
+                          className="w-full text-sm border border-zinc-200 rounded-lg px-3 py-2 bg-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                        />
+                      </div>
+                      <button
+                        type="submit"
+                        disabled={isSubmittingTestimonial}
+                        className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 rounded-lg text-sm shadow-md transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+                      >
+                        {isSubmittingTestimonial ? 'Adding...' : 'Add Testimonial'}
+                      </button>
+                    </form>
+                  </div>
+
+                  {/* Right Column: List */}
+                  <div className="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-zinc-200 overflow-hidden">
+                    <div className="p-5 border-b border-zinc-200">
+                      <h3 className="text-lg font-bold text-zinc-800">
+                        Testimonials List
+                        <span className="ml-2 text-sm font-medium text-zinc-400">({testimonials.length})</span>
+                      </h3>
+                      <p className="text-zinc-500 text-xs mt-0.5">Manage customer video reviews showing up on the public testimonials page.</p>
+                    </div>
+
+                    {testimonials.length === 0 ? (
+                      <div className="p-12 text-center text-zinc-500 bg-zinc-50/50">
+                        <Film className="w-10 h-10 mx-auto text-zinc-300 mb-3" />
+                        <p className="font-medium">No testimonials found.</p>
+                        <p className="text-xs mt-1">Use the form on the left to add your first client testimonial.</p>
+                      </div>
+                    ) : (
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-left text-sm text-zinc-600">
+                          <thead className="bg-zinc-50 text-zinc-500 uppercase text-xs font-semibold">
+                            <tr>
+                              <th className="px-6 py-4">Client</th>
+                              <th className="px-6 py-4">Device Model</th>
+                              <th className="px-6 py-4">Instagram Link</th>
+                              <th className="px-6 py-4 text-right">Action</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-zinc-200">
+                            {testimonials.map((t: any) => (
+                              <tr key={t.id} className="hover:bg-zinc-50 transition-colors">
+                                <td className="px-6 py-4 font-semibold text-zinc-900">{t.client_name}</td>
+                                <td className="px-6 py-4 text-zinc-700 font-medium">{t.model_name}</td>
+                                <td className="px-6 py-4">
+                                  <a
+                                    href={t.instagram_url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-blue-600 hover:underline text-xs truncate max-w-[200px] block"
+                                  >
+                                    {t.instagram_url}
+                                  </a>
+                                </td>
+                                <td className="px-6 py-4 text-right">
+                                  <button
+                                    onClick={() => handleDeleteTestimonial(t.id)}
+                                    className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                                    title="Delete Testimonial"
+                                  >
+                                    <Trash2 className="w-4 h-4" />
+                                  </button>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
                   </div>
                 </div>
               </motion.div>

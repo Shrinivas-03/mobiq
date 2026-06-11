@@ -1,5 +1,3 @@
-"use client";
-import { motion } from "framer-motion";
 import { Star } from "lucide-react";
 
 export default function Testimonials() {
@@ -39,8 +37,8 @@ export default function Testimonials() {
            <div className="absolute right-0 inset-y-0 w-16 bg-gradient-to-l from-gray-100 to-transparent z-10 pointer-events-none"></div>
 
            <div className="flex w-fit gap-6 animate-scroll-horizontal hover:pause px-4">
-             {/* Duplicate array for seamless looping */}
-             {[...reviews, ...reviews, ...reviews, ...reviews].map((review, i) => (
+              {/* Two copies is enough for a seamless infinite CSS loop */}
+              {[...reviews, ...reviews].map((review, i) => (
                 <div 
                   key={`${review.id}-${i}`}
                   className={`bg-white p-8 w-80 shrink-0 rounded-xl text-left border border-gray-100 shadow-sm transition-transform hover:scale-[1.02] ${review.id === 2 ? 'border-t-4 border-green-500 shadow-md' : ''}`}

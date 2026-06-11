@@ -45,3 +45,12 @@ html {
   animation-play-state: paused;
 }
 
+/* Pure CSS float animation — replaces JS framer-motion repeat:Infinity */
+@keyframes float-y {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-12px); }
+}
+
+.animate-float {
+  animation: float-y 6s ease-in-out infinite;
+}

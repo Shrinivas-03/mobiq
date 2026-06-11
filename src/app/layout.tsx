@@ -13,15 +13,31 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://themobbiq.com'),
+  metadataBase: new URL('https://www.themobiq.com'),
   title: {
     default: "TheMobiQ - Sell Used Mobiles Online Instantly for Best Price",
     template: "%s | TheMobiQ"
   },
-  description: "Sell your used devices instantly for the best price from the comfort of your home. Free doorstep pickup in Bangalore, Mysore, and Gulbarga. Instant cash payment.",
+  description: "Sell your used devices instantly for the best price. Free doorstep pickup in Bangalore, Mysore, and Gulbarga (Kalaburagi). Instant cash payment for second hand, refurbished, and pre-owned smartphones.",
   keywords: [
+    "Second hand products", "Buy used products", "Sell used products", "Buy and sell used items", 
+    "Online marketplace", "Local marketplace", "Used goods marketplace", "Pre-owned products", 
+    "Used products near me", "Best second hand marketplace", "Second hand mobiles", "Used mobiles for sale", 
+    "Buy used phones", "Refurbished smartphones", "Best mobile deals", "Cheap smartphones", 
+    "Second hand iPhone", "Used Samsung phones", "Used OnePlus phones", "Mobile exchange deals", 
+    "Pre-owned smartphones", "Budget smartphones", "Kalaburagi", "Second hand products in Kalaburagi", 
+    "Buy used mobiles in Kalaburagi", "Sell used phones in Kalaburagi", "Used furniture in Kalaburagi", 
+    "Second hand bikes in Kalaburagi", "Buy and sell products in Kalaburagi", "Kalaburagi marketplace", 
+    "Bengaluru", "Second hand products in Bengaluru", "Used mobiles in Bengaluru", "Buy used phones in Bangalore", 
+    "Bangalore second hand marketplace", "Used electronics in Bangalore", "Sell used products in Bangalore", 
+    "Pre-owned gadgets Bangalore", "Mysuru", "Second hand products in Mysuru", "Used mobiles in Mysuru", 
+    "Buy and sell products in Mysore", "Mysore second hand marketplace", "Used electronics Mysuru", 
+    "Sell old phones Mysuru", "Best place to sell old mobiles in Bangalore", "Buy second hand phones in Kalaburagi", 
+    "Affordable used smartphones in Mysore", "Trusted second hand marketplace in Karnataka", 
+    "Buy and sell used electronics online", "Used mobile deals near me", "Second hand products at best prices", 
+    "Local marketplace for used goods", "Verified sellers for used mobiles", "Best deals on second hand smartphones",
     "sell used mobile", "sell old phone", "sell smartphone", "sell mobile online", "cash for phone",
-    "sell iphone", "sell samsung", "sell oneplus", "sell oppo", "sell vivo", "sell mi", "sell realme", "sell iqoo", "sell motorola",
+    "sell iphone", "sell samsung", "sell oneplus", "sell oppo", "sell vivo", "sell mi", "sell realme",
     "second hand mobile price", "mobile exchange", "sell gadgets",
     "sell mobile bangalore", "sell phone bengaluru", "sell mobile mysore", "sell phone mysuru",
     "sell mobile gulbarga", "sell phone kalaburgi"

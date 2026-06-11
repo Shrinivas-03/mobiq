@@ -31,6 +31,7 @@ export default function Header() {
           <nav className="hidden md:flex gap-8 items-center text-sm font-semibold text-gray-700">
             <Link href="/" className="hover:text-green-600 transition-colors uppercase">Home</Link>
             <Link href="/about-us" className="hover:text-green-600 transition-colors uppercase">About Us</Link>
+            <Link href="/testimonials" className="hover:text-green-600 transition-colors uppercase">Testimonials</Link>
             <Link href="/contact-us" className="hover:text-green-600 transition-colors uppercase">Contact Us</Link>
           </nav>
 
@@ -75,6 +76,13 @@ export default function Header() {
                 className="text-gray-800 hover:text-green-600 font-semibold p-2 rounded-lg hover:bg-green-50 transition-colors"
               >
                 About Us
+              </Link>
+              <Link 
+                href="/testimonials" 
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="text-gray-800 hover:text-green-600 font-semibold p-2 rounded-lg hover:bg-green-50 transition-colors"
+              >
+                Testimonials
               </Link>
               <Link 
                 href="/contact-us" 

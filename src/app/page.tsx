@@ -8,6 +8,11 @@ import FaqAccordion from "@/components/FaqAccordion";
 import Footer from "@/components/Footer";
 import FadeIn from "@/components/FadeIn";
 
+export const metadata = {
+  title: "MobiQ - Best Second Hand Mobile & Used Products Marketplace",
+  description: "Looking for the best second hand marketplace in Karnataka? MobiQ is the trusted platform to buy and sell used products, smartphones, and electronics in Kalaburagi, Bengaluru, and Mysuru. Get verified sellers and fast transactions.",
+};
+
 export default function Home() {
   return (
     <div className="min-h-screen bg-white">
