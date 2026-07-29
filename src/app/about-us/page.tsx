@@ -21,7 +21,7 @@ export default function AboutUs() {
             src="/about-banner.png"
             alt="About Us Banner"
             fill
-            className="object-cover opacity-60"
+            className="object-cover opacity-60 animate-pan-slow"
             priority
         />
         <div className="absolute inset-0 bg-gradient-to-r from-green-50 to-white/50" />
@@ -59,7 +59,7 @@ export default function AboutUs() {
             </div>
 
             {/* Image Content */}
-            <div className="relative h-[400px] lg:h-[500px] w-full bg-gray-50 rounded-2xl p-8 flex items-center justify-center shadow-inner overflow-hidden shadow-xl border border-gray-100">
+            <div className="relative h-[400px] lg:h-[500px] w-full bg-gray-50 rounded-2xl p-8 flex items-center justify-center shadow-inner overflow-hidden shadow-xl border border-gray-100 animate-float">
                <div className="absolute inset-0 bg-white/40 z-0"></div>
                {/* Decorative elements to simulate dynamic device display if actual image is missing, 
                    or use the visual as inspiration to place devices dynamically. */}
@@ -111,8 +111,8 @@ export default function AboutUs() {
                 
                 {/* Product Composition */}
                 <div className="w-full lg:w-1/2 relative min-h-[400px] flex items-end justify-center mt-12 lg:mt-0">
-                    <div className="relative w-full max-w-[500px] h-[350px] lg:h-[450px] rounded-3xl overflow-hidden shadow-2xl border-[6px] border-[#718aa6]">
-                        <Image src="/core-values-tech.png" alt="Core Values Devices" fill className="object-cover" />
+                    <div className="relative w-full max-w-[500px] h-[350px] lg:h-[450px] rounded-3xl overflow-hidden shadow-2xl border-[6px] border-[#718aa6] hover-shine">
+                        <Image src="/core-values-tech.png" alt="Core Values Devices" fill className="object-cover transition-transform duration-500 hover:scale-110" />
                     </div>
                 </div>
 

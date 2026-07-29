@@ -23,7 +23,8 @@ const STATIC_BRANDS: BrandItem[] = [
 ];
 
 export default function Brands() {
-  const [brands, setBrands] = useState<BrandItem[]>(STATIC_BRANDS);
+  const [brands, setBrands] = useState<BrandItem[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetch("/api/brands")
@@ -37,10 +38,34 @@ export default function Brands() {
               logo: b.logo_url,
             }))
           );
+        } else {
+          setBrands(STATIC_BRANDS);
         }
       })
-      .catch(() => {});
+      .catch(() => {
+        setBrands(STATIC_BRANDS);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
   }, []);
+
+  if (loading) {
+    return (
+      <section className="py-16 bg-white w-full">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <h2 className="text-xl font-bold text-gray-800 mb-8 border-b-2 border-gray-100 pb-2 inline-block">
+            All Top Brands
+          </h2>
+          <div className="flex gap-6 sm:gap-12 flex-wrap items-center justify-center sm:justify-start">
+            {[...Array(6)].map((_, idx) => (
+              <div key={idx} className="w-32 h-32 md:w-48 md:h-32 border border-gray-100 bg-zinc-50 rounded-xl animate-pulse" />
+            ))}
+          </div>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section className="py-16 bg-white w-full">
@@ -54,7 +79,7 @@ export default function Brands() {
             <Link
               href={`/sell?brand=${brand.id}`}
               key={brand.id}
-              className="relative group w-32 h-32 md:w-48 md:h-32 border border-gray-100 shadow-sm rounded-xl flex flex-col items-center justify-center hover:shadow-xl transition-all duration-300 hover:-translate-y-1 bg-white overflow-hidden p-4"
+              className="relative group w-32 h-32 md:w-48 md:h-32 border border-gray-100 shadow-sm rounded-xl flex flex-col items-center justify-center hover:shadow-xl transition-all duration-300 hover:-translate-y-1 bg-white overflow-hidden p-4 hover-shine"
             >
               <img
                 src={brand.logo}

@@ -264,38 +264,51 @@ function SellFlow() {
   const [searchQuery, setSearchQuery] = useState("");
 
   // Dynamic Brands & Models state
-  const [brandsList, setBrandsList] = useState(BRANDS);
-  const [modelsMap, setModelsMap] = useState<Record<string, { id: string; name: string }[]>>(MODELS);
+  const [brandsList, setBrandsList] = useState<{ id: string; name: string; logo: string }[]>([]);
+  const [modelsMap, setModelsMap] = useState<Record<string, { id: string; name: string }[]>>({});
+  const [brandsLoading, setBrandsLoading] = useState(true);
 
   useEffect(() => {
-    fetch("/api/brands")
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.success && Array.isArray(data.brands) && data.brands.length > 0) {
-          setBrandsList(
-            data.brands.map((b: { id: string; name: string; logo_url: string }) => ({
-              id: b.id,
-              name: b.name,
-              logo: b.logo_url,
-            }))
-          );
-        }
-      })
-      .catch(() => {});
+    Promise.all([
+      fetch("/api/brands")
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.success && Array.isArray(data.brands) && data.brands.length > 0) {
+            setBrandsList(
+              data.brands.map((b: { id: string; name: string; logo_url: string }) => ({
+                id: b.id,
+                name: b.name,
+                logo: b.logo_url,
+              }))
+            );
+          } else {
+            setBrandsList(BRANDS);
+          }
+        })
+        .catch(() => {
+          setBrandsList(BRANDS);
+        }),
 
-    fetch("/api/models")
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.success && Array.isArray(data.models) && data.models.length > 0) {
-          const grouped: Record<string, { id: string; name: string }[]> = {};
-          data.models.forEach((m: { id: string; brand_id: string; name: string }) => {
-            if (!grouped[m.brand_id]) grouped[m.brand_id] = [];
-            grouped[m.brand_id].push({ id: m.id, name: m.name });
-          });
-          setModelsMap(grouped);
-        }
-      })
-      .catch(() => {});
+      fetch("/api/models")
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.success && Array.isArray(data.models) && data.models.length > 0) {
+            const grouped: Record<string, { id: string; name: string }[]> = {};
+            data.models.forEach((m: { id: string; brand_id: string; name: string }) => {
+              if (!grouped[m.brand_id]) grouped[m.brand_id] = [];
+              grouped[m.brand_id].push({ id: m.id, name: m.name });
+            });
+            setModelsMap(grouped);
+          } else {
+            setModelsMap(MODELS);
+          }
+        })
+        .catch(() => {
+          setModelsMap(MODELS);
+        })
+    ]).finally(() => {
+      setBrandsLoading(false);
+    });
   }, []);
 
   const validateCheckout = () => {
@@ -481,14 +494,20 @@ function SellFlow() {
                   </div>
                   <input type="text" placeholder="Search your brand..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="block w-full pl-11 pr-4 py-4 border-2 border-gray-200 rounded-xl leading-5 focus:outline-none focus:border-green-500 text-gray-900 font-medium text-lg"/>
                 </div>
-                {/* Grid */}
+                 {/* Grid */}
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
-                  {filteredBrands.map((brand) => (
-                    <button key={brand.id} onClick={() => { setSelectedBrand(brand.id); setSearchQuery(""); setStep("model"); }} className="flex flex-col items-center justify-center p-6 bg-white border-2 border-gray-100 rounded-xl hover:border-green-500 hover:shadow-lg transition-all">
-                      <img src={brand.logo} alt={brand.name} className="object-contain h-16 w-16 mb-3" />
-                      <span className="font-semibold text-gray-700">{brand.name}</span>
-                    </button>
-                  ))}
+                  {brandsLoading ? (
+                    [...Array(6)].map((_, idx) => (
+                      <div key={idx} className="h-32 border-2 border-gray-100 bg-gray-50 rounded-xl animate-pulse" />
+                    ))
+                  ) : (
+                    filteredBrands.map((brand) => (
+                      <button key={brand.id} onClick={() => { setSelectedBrand(brand.id); setSearchQuery(""); setStep("model"); }} className="flex flex-col items-center justify-center p-6 bg-white border-2 border-gray-100 rounded-xl hover:border-green-500 hover:shadow-lg transition-all">
+                        <img src={brand.logo} alt={brand.name} className="object-contain h-16 w-16 mb-3" />
+                        <span className="font-semibold text-gray-700">{brand.name}</span>
+                      </button>
+                    ))
+                  )}
                 </div>
               </motion.div>
             )}

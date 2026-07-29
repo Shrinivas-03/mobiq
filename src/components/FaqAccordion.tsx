@@ -15,6 +15,22 @@ const faqs = [
   {
     question: "Do you ask for original purchase receipt/invoice?",
     answer: "Having the original invoice helps in getting a higher value, but we can also accept the device without it provided you have a valid ID proof."
+  },
+  {
+    question: "How does the doorstep pickup process work?",
+    answer: "Once you submit a sell request, our representative will contact you to confirm a pickup time. The agent will inspect the device at your doorstep, verify the condition, and initiate instant payment immediately before collecting the phone."
+  },
+  {
+    question: "Are there any shipping or pickup charges?",
+    answer: "No, the doorstep pickup and inspection services are completely free of charge. There are no hidden fees or commissions deducted from your final quoted price."
+  },
+  {
+    question: "What happens to the data on my phone?",
+    answer: "We take data privacy very seriously. We mandate that you factory reset your phone before handing it over. Additionally, our processing team performs a secure data wipe on all acquired devices to ensure no personal data can ever be recovered."
+  },
+  {
+    question: "Can I sell a phone that doesn't turn on?",
+    answer: "Yes, you can sell dead or non-working phones for their scrap/parts value. Just select the option indicating that the device does not turn on during the sell flow to get an estimate."
   }
 ];
 

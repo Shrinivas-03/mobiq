@@ -82,7 +82,7 @@ export default function Hero() {
           </p>
           <Link
             href="/sell"
-            className="bg-white text-blue-900 group hover:bg-gray-100 px-8 py-4 rounded-full font-bold text-lg shadow-xl shadow-blue-900/50 transition-all transform hover:-translate-y-1 flex items-center gap-3 w-fit"
+            className="bg-white text-blue-900 group hover:bg-gray-100 px-8 py-4 rounded-full font-bold text-lg shadow-xl shadow-blue-900/50 transition-all transform hover:-translate-y-1 flex items-center gap-3 w-fit animate-pulse-glow"
           >
             <div className="bg-green-500 rounded-full p-1 flex items-center justify-center">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" className="text-white">

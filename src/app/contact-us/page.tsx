@@ -69,7 +69,7 @@ export default function ContactUs() {
         <div className="relative w-full h-[200px] md:h-[300px] bg-gray-100 flex items-center justify-center overflow-hidden">
              {/* Banner Background */}
              <div className="absolute inset-0">
-                  <Image src="/contact-banner.png" alt="Contact Us Banner" fill className="object-cover opacity-60" priority />
+                  <Image src="/contact-banner.png" alt="Contact Us Banner" fill className="object-cover opacity-60 animate-pan-slow" priority />
                   <div className="absolute inset-0 bg-gradient-to-r from-gray-50 to-white/60"></div>
              </div>
             <div className="z-10 text-center px-4 relative">
@@ -92,7 +92,7 @@ export default function ContactUs() {
                 {/* Contact Information */}
                 <div className="space-y-10 flex flex-col justify-center">
                     
-                    <div className="flex items-start gap-6 group">
+                    <div className="flex items-start gap-6 group hover:translate-x-2 transition-transform duration-300">
                         <div className="flex-shrink-0 mt-1">
                             <div className="w-12 h-12 rounded-full border border-green-200 flex items-center justify-center text-green-600 group-hover:bg-green-600 group-hover:text-white transition-colors">
                                 <MapPin className="w-6 h-6" strokeWidth={1.5} />
@@ -106,7 +106,7 @@ export default function ContactUs() {
                         </div>
                     </div>
 
-                    <div className="flex items-start gap-6 group">
+                    <div className="flex items-start gap-6 group hover:translate-x-2 transition-transform duration-300">
                         <div className="flex-shrink-0 mt-1">
                             <div className="w-12 h-12 rounded-full border border-green-200 flex items-center justify-center text-green-600 group-hover:bg-green-600 group-hover:text-white transition-colors">
                                 <Mail className="w-6 h-6" strokeWidth={1.5} />
@@ -118,7 +118,7 @@ export default function ContactUs() {
                         </div>
                     </div>
 
-                    <div className="flex items-start gap-6 group">
+                    <div className="flex items-start gap-6 group hover:translate-x-2 transition-transform duration-300">
                         <div className="flex-shrink-0 mt-1">
                             <div className="w-12 h-12 rounded-full border border-green-200 flex items-center justify-center text-green-600 group-hover:bg-green-600 group-hover:text-white transition-colors">
                                 <Phone className="w-6 h-6" strokeWidth={1.5} />
@@ -196,7 +196,7 @@ export default function ContactUs() {
                             <button 
                                 type="submit" 
                                 disabled={isLoading || isSubmitted}
-                                className="bg-green-600 hover:bg-green-700 disabled:opacity-70 text-white px-8 py-3 rounded-full font-bold shadow-lg shadow-green-600/30 transition-all transform hover:scale-105 active:scale-95 uppercase text-sm"
+                                className="bg-green-600 hover:bg-green-700 disabled:opacity-70 text-white px-8 py-3 rounded-full font-bold shadow-lg shadow-green-600/30 transition-all transform hover:scale-105 active:scale-95 uppercase text-sm animate-pulse-glow"
                             >
                                 {isLoading ? "Sending..." : isSubmitted ? "Sent ✓" : "Send Message"}
                             </button>

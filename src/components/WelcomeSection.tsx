@@ -1,5 +1,6 @@
 "use client";
 import { motion } from "framer-motion";
+import Link from "next/link";
 import Image from "next/image";
 
 export default function WelcomeSection() {
@@ -20,9 +21,12 @@ export default function WelcomeSection() {
           <p className="text-gray-600 mb-8 leading-relaxed text-lg">
             Welcome to MobiQ, the fastest growing portal to sell your old mobile phones quickly and easily for instant cash. With MobiQ, you can sell your used smartphones online right from the comfort of our home and get the best value for your device...
           </p>
-          <button className="bg-green-600 hover:bg-green-700 text-white px-8 py-3 rounded-full font-bold shadow-lg transition-all hover:shadow-green-600/30 transform hover:-translate-y-1 uppercase text-sm">
+          <Link 
+            href="/about-us"
+            className="bg-green-600 hover:bg-green-700 text-white px-8 py-3 rounded-full font-bold shadow-lg transition-all hover:shadow-green-600/30 transform hover:-translate-y-1 uppercase text-sm inline-block text-center"
+          >
             More About It
-          </button>
+          </Link>
         </motion.div>
 
         {/* Right Side: Image/Devices Composition */}
