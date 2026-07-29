@@ -263,6 +263,41 @@ function SellFlow() {
   
   const [searchQuery, setSearchQuery] = useState("");
 
+  // Dynamic Brands & Models state
+  const [brandsList, setBrandsList] = useState(BRANDS);
+  const [modelsMap, setModelsMap] = useState<Record<string, { id: string; name: string }[]>>(MODELS);
+
+  useEffect(() => {
+    fetch("/api/brands")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success && Array.isArray(data.brands) && data.brands.length > 0) {
+          setBrandsList(
+            data.brands.map((b: { id: string; name: string; logo_url: string }) => ({
+              id: b.id,
+              name: b.name,
+              logo: b.logo_url,
+            }))
+          );
+        }
+      })
+      .catch(() => {});
+
+    fetch("/api/models")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success && Array.isArray(data.models) && data.models.length > 0) {
+          const grouped: Record<string, { id: string; name: string }[]> = {};
+          data.models.forEach((m: { id: string; brand_id: string; name: string }) => {
+            if (!grouped[m.brand_id]) grouped[m.brand_id] = [];
+            grouped[m.brand_id].push({ id: m.id, name: m.name });
+          });
+          setModelsMap(grouped);
+        }
+      })
+      .catch(() => {});
+  }, []);
+
   const validateCheckout = () => {
     let valid = true;
     const errors = { name: "", phone: "", altPhone: "", email: "", address: "" };
@@ -327,13 +362,13 @@ function SellFlow() {
 
   useEffect(() => {
     if (initialBrand && step === "brand" && !selectedBrand) {
-      const brandObj = BRANDS.find((b) => b.id === initialBrand);
+      const brandObj = brandsList.find((b) => b.id === initialBrand);
       if (brandObj) {
         setSelectedBrand(brandObj.id);
         setStep("model");
       }
     }
-  }, [initialBrand, step, selectedBrand]);
+  }, [initialBrand, step, selectedBrand, brandsList]);
 
   // Fetch a best-case estimate when the user reaches the Estimate step
   useEffect(() => {
@@ -375,10 +410,10 @@ function SellFlow() {
     setArr(prev => prev.includes(id) ? prev.filter(d => d !== id) : [...prev, id]);
   };
 
-  const activeBrandObj = BRANDS.find((b) => b.id === selectedBrand);
-  const availableModels = selectedBrand && MODELS[selectedBrand] ? MODELS[selectedBrand] : [];
+  const activeBrandObj = brandsList.find((b) => b.id === selectedBrand);
+  const availableModels = selectedBrand && modelsMap[selectedBrand] ? modelsMap[selectedBrand] : [];
   
-  const filteredBrands = BRANDS.filter(b => b.name.toLowerCase().includes(searchQuery.toLowerCase()));
+  const filteredBrands = brandsList.filter(b => b.name.toLowerCase().includes(searchQuery.toLowerCase()));
   const filteredModels = availableModels.filter(m => m.name.toLowerCase().includes(searchQuery.toLowerCase()));
   const filteredCities = CITIES.filter(c => c.toLowerCase().includes(searchQuery.toLowerCase()));
 
@@ -450,7 +485,7 @@ function SellFlow() {
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
                   {filteredBrands.map((brand) => (
                     <button key={brand.id} onClick={() => { setSelectedBrand(brand.id); setSearchQuery(""); setStep("model"); }} className="flex flex-col items-center justify-center p-6 bg-white border-2 border-gray-100 rounded-xl hover:border-green-500 hover:shadow-lg transition-all">
-                      <Image src={brand.logo} alt={brand.name} width={64} height={64} className="object-contain h-16 mb-3" />
+                      <img src={brand.logo} alt={brand.name} className="object-contain h-16 w-16 mb-3" />
                       <span className="font-semibold text-gray-700">{brand.name}</span>
                     </button>
                   ))}
@@ -820,7 +855,7 @@ function SellFlow() {
                              headers: { "Content-Type": "application/json" },
                              body: JSON.stringify({
                                brandId: selectedBrand,
-                               brandName: BRANDS.find(b => b.id === selectedBrand)?.name ?? "",
+                               brandName: brandsList.find(b => b.id === selectedBrand)?.name ?? "",
                                modelId: selectedModel?.id ?? "",
                                modelName: selectedModel?.name ?? "",
                                variantId: selectedVariant?.id ?? "",

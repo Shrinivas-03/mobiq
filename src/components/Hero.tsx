@@ -1,12 +1,48 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
+import { useState, useEffect } from "react";
 
-// Hero is a Server Component — no JS sent to the browser for this section.
-// - Removed useScroll/useTransform (was hooking every scroll event via JS)
-// - Replaced framer-motion repeat:Infinity with a CSS animation (.animate-float)
-// - Replaced framer-motion entry animations with CSS transitions using @starting-style
-//   (not supported everywhere, so we use simple opacity-100 via CSS class instead)
 export default function Hero() {
+  const words = ["Sell Your Gadgets", "Sell Your Mobile", "Get Instant Cash", "Free Doorstep Pickup"];
+  const [currentWordIndex, setCurrentWordIndex] = useState(0);
+  const [currentText, setCurrentText] = useState("");
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [typingSpeed, setTypingSpeed] = useState(150);
+
+  useEffect(() => {
+    let timer: NodeJS.Timeout;
+    const fullText = words[currentWordIndex];
+
+    const handleType = () => {
+      if (!isDeleting) {
+        setCurrentText(fullText.substring(0, currentText.length + 1));
+        setTypingSpeed(80);
+
+        if (currentText === fullText) {
+          timer = setTimeout(() => setIsDeleting(true), 2000);
+          return;
+        }
+      } else {
+        setCurrentText(fullText.substring(0, currentText.length - 1));
+        setTypingSpeed(45);
+
+        if (currentText === "") {
+          setIsDeleting(false);
+          setCurrentWordIndex((prev) => (prev + 1) % words.length);
+          setTypingSpeed(200);
+        }
+      }
+
+      timer = setTimeout(handleType, typingSpeed);
+    };
+
+    timer = setTimeout(handleType, typingSpeed);
+
+    return () => clearTimeout(timer);
+  }, [currentText, isDeleting, currentWordIndex, typingSpeed]);
+
   return (
     <section className="relative overflow-hidden bg-gradient-to-r from-blue-900 via-indigo-900 to-blue-800 text-white min-h-[500px] flex items-center py-16">
       {/* Decorative Background Elements */}
@@ -29,13 +65,17 @@ export default function Hero() {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 grid md:grid-cols-2 gap-12 items-center">
-        {/* Text Content — static, no JS needed */}
+        {/* Text Content */}
         <div className="space-y-6">
-          <div className="text-green-400 font-extrabold text-2xl tracking-widest uppercase">
+          <div className="text-green-400 font-extrabold text-2xl tracking-widest uppercase animate-pulse">
             MobiQ
           </div>
-          <h1 className="text-5xl md:text-6xl font-black leading-tight tracking-tight text-white mb-2">
-            SELL YOUR<br/>GADGETS
+          <h1 className="text-4xl sm:text-5xl md:text-6xl font-black leading-tight tracking-tight text-white mb-2 min-h-[160px]">
+            Welcome to <span className="bg-gradient-to-r from-green-400 to-emerald-300 bg-clip-text text-transparent">themobiq</span>
+            <br />
+            <span className="text-yellow-400 inline-block relative border-r-2 border-yellow-400 pr-1 animate-pulse">
+              {currentText || "\u00A0"}
+            </span>
           </h1>
           <p className="text-xl md:text-2xl text-blue-100 font-light mb-8 max-w-lg">
             Now Experience the <span className="font-bold text-white">FAST</span> Payment for Your old Mobile Phone
@@ -55,10 +95,9 @@ export default function Hero() {
           </Link>
         </div>
 
-        {/* Device Image — CSS float animation instead of framer-motion repeat:Infinity */}
+        {/* Device Image */}
         <div className="relative h-[400px] w-full hidden md:block">
           <div className="absolute inset-0 flex items-center justify-center translate-x-10">
-            {/* animate-float is a pure CSS keyframe animation (see globals.css) */}
             <div className="animate-float relative w-full h-[500px]">
               <Image
                 src="/hero-devices.png"

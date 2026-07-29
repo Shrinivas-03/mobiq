@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
 import { sendSellConfirmationEmail } from "@/lib/email";
 import { calculatePrice } from "@/lib/pricing";
+import { getModelPricingConfig } from "@/lib/brands";
 
 // ──────────────────────────────────────────────
 // TYPES
@@ -82,6 +83,7 @@ export async function POST(request: Request) {
 
     // ── Server-side price validation ──
     // Recompute the price independently — never trust the client-submitted quotedPrice.
+    const config = await getModelPricingConfig(body.modelId);
     const priceResult = calculatePrice({
       modelId:        body.modelId,
       brandId:        body.brandId,
@@ -93,7 +95,7 @@ export async function POST(request: Request) {
       batteryHealth:  body.batteryHealth,
       batteryQuality: body.batteryQuality,
       deviceAge:      body.deviceAge,
-    });
+    }, config ?? undefined);
 
     if (!priceResult.success) {
       return NextResponse.json(

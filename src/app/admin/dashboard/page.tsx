@@ -18,7 +18,8 @@ import {
   Star,
   Trash2,
   Plus,
-  Film
+  Film,
+  Database
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -46,6 +47,85 @@ export default function AdminDashboard() {
   const [newInstagramUrl, setNewInstagramUrl] = useState('');
   const [isSubmittingTestimonial, setIsSubmittingTestimonial] = useState(false);
 
+  // Catalog tab states
+  const [catalogBrands, setCatalogBrands] = useState<any[]>([]);
+  const [catalogModels, setCatalogModels] = useState<any[]>([]);
+  const [selectedCatalogBrand, setSelectedCatalogBrand] = useState<string>('all');
+  const [isAddingBrand, setIsAddingBrand] = useState(false);
+  const [isAddingModel, setIsAddingModel] = useState(false);
+  const [isEditingModel, setIsEditingModel] = useState(false);
+  const [isUploadingLogo, setIsUploadingLogo] = useState(false);
+  const [brandForm, setBrandForm] = useState({ id: '', name: '', logo_url: '/apple.png' });
+
+  const DEFAULT_PRICING_CONFIG = {
+    battery: {
+      type: 'android',
+      deductions: { High: 0, Average: 1200, Poor: 3000 },
+      iphoneDeductions: { "95_100": 0, "90_94": 800, "85_89": 1800, "80_84": 3500, "75_79": 5500, "below_75": 8000 }
+    },
+    variantMultipliers: { "6_128": 0.85, "8_128": 0.90, "8_256": 1.00, "12_256": 1.08, "12_512": 1.15 },
+    ageDeductions: { "0_3": 0.05, "3_6": 0.12, "6_11": 0.22, "11_plus": 0.38 },
+    hardware: { screen: 3000, dead: 3500, body: 1200, panel: 2400, touch: 2700, button: 1000, bent: 2000, loose: 1500 },
+    software: { wifi: 1200, mic: 1200, faceid: 2500, charge: 1200, camera: 2000, bluetooth: 1000, fingerprint: 1200 },
+    accessories: { box: 500, charger: 300, invoice: 400, warranty: 800 }
+  };
+
+  const [modelForm, setModelForm] = useState({
+    id: '',
+    brand_id: 'apple',
+    name: '',
+    base_price: 30000,
+    pricing_config: JSON.parse(JSON.stringify(DEFAULT_PRICING_CONFIG))
+  });
+
+  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsUploadingLogo(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const res = await fetch('/api/admin/brands/upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      const data = await res.json();
+      if (data.success && data.url) {
+        setBrandForm((prev) => ({ ...prev, logo_url: data.url }));
+      } else {
+        alert('Upload failed: ' + (data.error || 'Unknown error'));
+      }
+    } catch (err) {
+      console.error('Logo upload error:', err);
+      alert('Failed to upload logo image.');
+    } finally {
+      setIsUploadingLogo(false);
+    }
+  };
+
+  const fetchCatalogBrands = async () => {
+    try {
+      const res = await fetch('/api/admin/brands');
+      const data = await res.json();
+      if (data.success) setCatalogBrands(data.brands || []);
+    } catch (err) {
+      console.error('Error fetching admin brands', err);
+    }
+  };
+
+  const fetchCatalogModels = async () => {
+    try {
+      const res = await fetch('/api/admin/models');
+      const data = await res.json();
+      if (data.success) setCatalogModels(data.models || []);
+    } catch (err) {
+      console.error('Error fetching admin models', err);
+    }
+  };
+
   useEffect(() => {
     // Check auth status
     const checkAuth = async () => {
@@ -58,6 +138,8 @@ export default function AdminDashboard() {
           fetchInventory();
           fetchQueries();
           fetchTestimonials();
+          fetchCatalogBrands();
+          fetchCatalogModels();
         } else {
           router.push('/admin/login');
         }
@@ -281,6 +363,7 @@ export default function AdminDashboard() {
     { id: 'analytics', label: 'Analytics', icon: BarChart3 },
     { id: 'leads', label: 'Leads View', icon: Users },
     { id: 'queries', label: 'Support Queries', icon: MessageSquare },
+    { id: 'catalog', label: 'Sell Catalog (Brands/Models)', icon: Database },
     { id: 'models', label: 'Models in Stock', icon: Smartphone },
     { id: 'testimonials', label: 'Testimonials', icon: Star },
   ];
@@ -623,6 +706,604 @@ export default function AdminDashboard() {
                     </div>
                   )}
                 </div>
+              </motion.div>
+            )}
+
+            {/* SELL CATALOG (BRANDS & MODELS) TAB */}
+            {activeTab === 'catalog' && (
+              <motion.div key="catalog" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="space-y-6">
+                
+                {/* Brands Section */}
+                <div className="bg-white rounded-2xl shadow-sm border border-zinc-200 p-5">
+                  <div className="flex flex-wrap items-center justify-between gap-4 mb-4">
+                    <div>
+                      <h3 className="text-lg font-bold text-zinc-800">Phone Brands</h3>
+                      <p className="text-sm text-zinc-500">Manage brands available on the sell page</p>
+                    </div>
+                    <button
+                      onClick={() => setIsAddingBrand(true)}
+                      className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-medium px-4 py-2 rounded-xl transition-all shadow-md text-sm"
+                    >
+                      <Plus className="w-4 h-4" /> Add Brand
+                    </button>
+                  </div>
+
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
+                    {catalogBrands.map((b) => (
+                      <div key={b.id} className="p-3 border border-zinc-200 rounded-xl bg-zinc-50/50 flex flex-col items-center justify-between text-center relative group">
+                        <img src={b.logo_url} alt={b.name} className="h-10 w-10 object-contain mb-2" />
+                        <span className="font-semibold text-xs text-zinc-800">{b.name}</span>
+                        <span className="text-[10px] text-zinc-400 font-mono mb-2">id: {b.id}</span>
+                        
+                        <div className="flex items-center gap-1.5 w-full justify-center">
+                          <button
+                            onClick={async () => {
+                              await fetch('/api/admin/brands', {
+                                method: 'PUT',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ id: b.id, is_active: !b.is_active }),
+                              });
+                              fetchCatalogBrands();
+                            }}
+                            className={`text-[11px] px-2 py-0.5 rounded-full font-medium ${b.is_active ? 'bg-green-100 text-green-700' : 'bg-zinc-200 text-zinc-600'}`}
+                          >
+                            {b.is_active ? 'Active' : 'Disabled'}
+                          </button>
+                          <button
+                            onClick={async () => {
+                              if (confirm(`Delete brand ${b.name}?`)) {
+                                await fetch(`/api/admin/brands?id=${b.id}`, { method: 'DELETE' });
+                                fetchCatalogBrands();
+                              }
+                            }}
+                            className="p-1 text-zinc-400 hover:text-red-600 rounded transition-colors"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Models Section */}
+                <div className="bg-white rounded-2xl shadow-sm border border-zinc-200 overflow-hidden">
+                  <div className="p-5 border-b border-zinc-200 flex flex-wrap items-center justify-between gap-4">
+                    <div>
+                      <h3 className="text-lg font-bold text-zinc-800">Phone Models & Base Pricing</h3>
+                      <p className="text-sm text-zinc-500">Manage device models and base pricing quotes stored in Supabase DB</p>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <select
+                        value={selectedCatalogBrand}
+                        onChange={(e) => setSelectedCatalogBrand(e.target.value)}
+                        className="bg-zinc-100 border border-zinc-200 text-zinc-700 text-xs font-semibold px-3 py-2 rounded-xl"
+                      >
+                        <option value="all">All Brands</option>
+                        {catalogBrands.map((b) => (
+                          <option key={b.id} value={b.id}>{b.name}</option>
+                        ))}
+                      </select>
+                      <button
+                        onClick={() => {
+                          setModelForm({
+                            id: '',
+                            brand_id: catalogBrands[0]?.id || 'apple',
+                            name: '',
+                            base_price: 30000,
+                            pricing_config: { ...DEFAULT_PRICING_CONFIG }
+                          });
+                          setIsEditingModel(false);
+                          setIsAddingModel(true);
+                        }}
+                        className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white font-medium px-4 py-2 rounded-xl transition-all shadow-md text-sm"
+                      >
+                        <Plus className="w-4 h-4" /> Add Model
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left text-sm text-zinc-600">
+                      <thead className="bg-zinc-50 text-zinc-500 text-xs uppercase font-semibold border-b border-zinc-200">
+                        <tr>
+                          <th className="px-6 py-4">Brand</th>
+                          <th className="px-6 py-4">Model Name</th>
+                          <th className="px-6 py-4">Model ID</th>
+                          <th className="px-6 py-4">Base Price Quote</th>
+                          <th className="px-6 py-4">Status</th>
+                          <th className="px-6 py-4 text-right">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-zinc-200">
+                        {catalogModels
+                          .filter((m) => selectedCatalogBrand === 'all' || m.brand_id === selectedCatalogBrand)
+                          .map((m) => (
+                            <tr key={m.id} className="hover:bg-zinc-50/50 transition-colors">
+                              <td className="px-6 py-4 font-semibold text-zinc-800 uppercase text-xs">{m.brand_id}</td>
+                              <td className="px-6 py-4 font-bold text-zinc-900">{m.name}</td>
+                              <td className="px-6 py-4 font-mono text-xs text-zinc-500">{m.id}</td>
+                              <td className="px-6 py-4 font-semibold text-green-600">₹{m.base_price?.toLocaleString('en-IN')}</td>
+                              <td className="px-6 py-4">
+                                <span className={`inline-flex px-2.5 py-0.5 rounded-full text-xs font-semibold ${m.is_active ? 'bg-green-100 text-green-800' : 'bg-zinc-100 text-zinc-600'}`}>
+                                  {m.is_active ? 'Active' : 'Disabled'}
+                                </span>
+                              </td>
+                              <td className="px-6 py-4 text-right space-x-2">
+                                <button
+                                  onClick={() => {
+                                  const dbConfig = m.pricing_config || {};
+                                  const mergedConfig = {
+                                    ...DEFAULT_PRICING_CONFIG,
+                                    ...dbConfig,
+                                    battery: {
+                                      ...DEFAULT_PRICING_CONFIG.battery,
+                                      ...(dbConfig.battery || {})
+                                    },
+                                    accessories: {
+                                      ...DEFAULT_PRICING_CONFIG.accessories,
+                                      ...(dbConfig.accessories || {})
+                                    }
+                                  };
+                                  setModelForm({
+                                    id: m.id,
+                                    brand_id: m.brand_id,
+                                    name: m.name,
+                                    base_price: m.base_price,
+                                    pricing_config: mergedConfig
+                                  });
+                                  setIsEditingModel(true);
+                                  setIsAddingModel(true);
+                                }}
+                                  className="text-xs text-indigo-600 hover:underline font-semibold"
+                                >
+                                  Edit
+                                </button>
+                                <button
+                                  onClick={async () => {
+                                    await fetch('/api/admin/models', {
+                                      method: 'PUT',
+                                      headers: { 'Content-Type': 'application/json' },
+                                      body: JSON.stringify({ id: m.id, is_active: !m.is_active }),
+                                    });
+                                    fetchCatalogModels();
+                                  }}
+                                  className="text-xs text-blue-600 hover:underline font-medium"
+                                >
+                                  Toggle Status
+                                </button>
+                                <button
+                                  onClick={async () => {
+                                    if (confirm(`Delete model ${m.name}?`)) {
+                                      await fetch(`/api/admin/models?id=${m.id}`, { method: 'DELETE' });
+                                      fetchCatalogModels();
+                                    }
+                                  }}
+                                  className="text-xs text-red-600 hover:underline font-medium"
+                                >
+                                  Delete
+                                </button>
+                              </td>
+                            </tr>
+                          ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                {/* Add Brand Modal */}
+                {isAddingBrand && (
+                  <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
+                    <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl space-y-4">
+                      <h4 className="text-lg font-bold text-zinc-900">Add New Phone Brand</h4>
+                      <div>
+                        <label className="text-xs font-semibold text-zinc-600">Brand Unique ID (slug)</label>
+                        <input
+                          type="text"
+                          placeholder="e.g. google, nothing, xiaomi"
+                          value={brandForm.id}
+                          onChange={(e) => setBrandForm({ ...brandForm, id: e.target.value })}
+                          className="w-full border border-zinc-300 rounded-lg p-2.5 text-sm mt-1 focus:ring-2 focus:ring-blue-500"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-xs font-semibold text-zinc-600">Display Name</label>
+                        <input
+                          type="text"
+                          placeholder="e.g. Google, Nothing, Xiaomi"
+                          value={brandForm.name}
+                          onChange={(e) => setBrandForm({ ...brandForm, name: e.target.value })}
+                          className="w-full border border-zinc-300 rounded-lg p-2.5 text-sm mt-1 focus:ring-2 focus:ring-blue-500"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-xs font-semibold text-zinc-600 block mb-1">Brand Logo Image</label>
+                        <div className="flex items-center gap-3 bg-zinc-50 border border-dashed border-zinc-300 rounded-xl p-3">
+                          {brandForm.logo_url ? (
+                            <img src={brandForm.logo_url} alt="Logo preview" className="w-12 h-12 object-contain bg-white rounded-lg p-1 border border-zinc-200" />
+                          ) : (
+                            <div className="w-12 h-12 bg-zinc-200 rounded-lg flex items-center justify-center text-xs text-zinc-500 font-medium">Logo</div>
+                          )}
+                          <div className="flex-1">
+                            <label className="inline-flex items-center gap-2 px-3 py-1.5 bg-blue-50 text-blue-600 hover:bg-blue-100 font-semibold text-xs rounded-lg cursor-pointer transition-colors border border-blue-200">
+                              <span>{isUploadingLogo ? 'Uploading to Supabase...' : 'Upload from Mobile / PC'}</span>
+                              <input
+                                type="file"
+                                accept="image/*"
+                                onChange={handleLogoUpload}
+                                disabled={isUploadingLogo}
+                                className="hidden"
+                              />
+                            </label>
+                            <p className="text-[11px] text-zinc-400 mt-1">PNG, JPG, SVG supported. Stored in Supabase.</p>
+                          </div>
+                        </div>
+                        <input
+                          type="text"
+                          placeholder="Or paste image URL (e.g. /apple.png)"
+                          value={brandForm.logo_url}
+                          onChange={(e) => setBrandForm({ ...brandForm, logo_url: e.target.value })}
+                          className="w-full border border-zinc-200 rounded-lg p-2 text-xs mt-2 text-zinc-500"
+                        />
+                      </div>
+                      <div className="flex justify-end gap-2 pt-2">
+                        <button
+                          onClick={() => setIsAddingBrand(false)}
+                          className="px-4 py-2 text-sm text-zinc-600 hover:bg-zinc-100 rounded-lg font-medium"
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          onClick={async () => {
+                            if (!brandForm.id || !brandForm.name) return alert('ID and Name required');
+                            await fetch('/api/admin/brands', {
+                              method: 'POST',
+                              headers: { 'Content-Type': 'application/json' },
+                              body: JSON.stringify(brandForm),
+                            });
+                            setIsAddingBrand(false);
+                            setBrandForm({ id: '', name: '', logo_url: '/apple.png' });
+                            fetchCatalogBrands();
+                          }}
+                          className="px-4 py-2 text-sm bg-blue-600 text-white hover:bg-blue-700 rounded-lg font-medium shadow"
+                        >
+                          Save Brand
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                 {/* Add / Edit Model Modal */}
+                {isAddingModel && (
+                  <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
+                    <div className="bg-white rounded-2xl p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl space-y-5">
+                      <div className="flex items-center justify-between border-b border-zinc-200 pb-3">
+                        <h4 className="text-lg font-bold text-zinc-900">
+                          {isEditingModel ? 'Edit Phone Model' : 'Add New Phone Model'}
+                        </h4>
+                        <span className="text-xs bg-zinc-100 text-zinc-600 px-2 py-0.5 rounded font-medium">Pricing Config Enabled</span>
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {/* Column 1: Basic Info */}
+                        <div className="space-y-4">
+                          <div>
+                            <label className="text-xs font-semibold text-zinc-600">Select Brand</label>
+                            <select
+                              value={modelForm.brand_id}
+                              onChange={(e) => {
+                                const isApple = e.target.value === 'apple';
+                                setModelForm({
+                                  ...modelForm,
+                                  brand_id: e.target.value,
+                                  pricing_config: {
+                                    ...modelForm.pricing_config,
+                                    battery: { type: isApple ? 'iphone' : 'android' }
+                                  }
+                                });
+                              }}
+                              disabled={isEditingModel}
+                              className="w-full border border-zinc-300 rounded-lg p-2.5 text-sm mt-1 focus:ring-2 focus:ring-blue-500"
+                            >
+                              {catalogBrands.map((b) => (
+                                <option key={b.id} value={b.id}>{b.name}</option>
+                              ))}
+                            </select>
+                          </div>
+
+                          <div>
+                            <label className="text-xs font-semibold text-zinc-600">Model Unique ID (slug)</label>
+                            <input
+                              type="text"
+                              placeholder="e.g. p8p, s24u, ip16pm"
+                              value={modelForm.id}
+                              onChange={(e) => setModelForm({ ...modelForm, id: e.target.value.toLowerCase().trim() })}
+                              disabled={isEditingModel}
+                              className="w-full border border-zinc-300 rounded-lg p-2.5 text-sm mt-1 focus:ring-2 focus:ring-blue-500"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="text-xs font-semibold text-zinc-600">Model Name</label>
+                            <input
+                              type="text"
+                              placeholder="e.g. Pixel 8 Pro, Galaxy S24 Ultra"
+                              value={modelForm.name}
+                              onChange={(e) => setModelForm({ ...modelForm, name: e.target.value })}
+                              className="w-full border border-zinc-300 rounded-lg p-2.5 text-sm mt-1 focus:ring-2 focus:ring-blue-500"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="text-xs font-semibold text-zinc-600">Base Price Quote (₹)</label>
+                            <input
+                              type="number"
+                              placeholder="50000"
+                              value={modelForm.base_price}
+                              onChange={(e) => setModelForm({ ...modelForm, base_price: Number(e.target.value) })}
+                              className="w-full border border-zinc-300 rounded-lg p-2.5 text-sm mt-1 focus:ring-2 focus:ring-blue-500"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="text-xs font-semibold text-zinc-600">Battery Health Deductions Type</label>
+                            <select
+                              value={modelForm.pricing_config.battery.type}
+                              onChange={(e) => setModelForm({
+                                ...modelForm,
+                                pricing_config: {
+                                  ...modelForm.pricing_config,
+                                  battery: { type: e.target.value as 'iphone' | 'android' }
+                                }
+                              })}
+                              className="w-full border border-zinc-300 rounded-lg p-2.5 text-sm mt-1 focus:ring-2 focus:ring-blue-500"
+                            >
+                              <option value="android">Android (Quality Grade: High/Average/Poor)</option>
+                              <option value="iphone">iPhone (Percentage-based curve)</option>
+                            </select>
+                          </div>
+                        </div>
+
+                        {/* Column 2: Multipliers & Age Depreciation */}
+                        <div className="space-y-4">
+                          <div>
+                            <label className="text-xs font-bold text-zinc-700 block mb-1">Variant Multipliers</label>
+                            <div className="grid grid-cols-2 gap-2 border border-zinc-200 rounded-xl p-3 bg-zinc-50/50">
+                              {Object.keys(DEFAULT_PRICING_CONFIG.variantMultipliers).map((variantKey) => (
+                                <div key={variantKey} className="flex flex-col">
+                                  <span className="text-[10px] text-zinc-500 font-medium">{variantKey.replace('_', 'GB / ')}GB</span>
+                                  <input
+                                    type="number"
+                                    step="0.01"
+                                    value={modelForm.pricing_config.variantMultipliers[variantKey as keyof typeof DEFAULT_PRICING_CONFIG.variantMultipliers]}
+                                    onChange={(e) => setModelForm({
+                                      ...modelForm,
+                                      pricing_config: {
+                                        ...modelForm.pricing_config,
+                                        variantMultipliers: {
+                                          ...modelForm.pricing_config.variantMultipliers,
+                                          [variantKey]: Number(e.target.value)
+                                        }
+                                      }
+                                    })}
+                                    className="border border-zinc-300 rounded p-1 text-xs mt-0.5 focus:ring-1 focus:ring-blue-500"
+                                  />
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+
+                          <div>
+                            <label className="text-xs font-bold text-zinc-700 block mb-1">Age Depreciation Deductions</label>
+                            <div className="grid grid-cols-2 gap-2 border border-zinc-200 rounded-xl p-3 bg-zinc-50/50">
+                              {Object.keys(DEFAULT_PRICING_CONFIG.ageDeductions).map((ageKey) => (
+                                <div key={ageKey} className="flex flex-col">
+                                  <span className="text-[10px] text-zinc-500 font-medium">
+                                    {ageKey === '0_3' ? '0-3 Months' : ageKey === '3_6' ? '3-6 Months' : ageKey === '6_11' ? '6-11 Months' : 'Above 11 Months'}
+                                  </span>
+                                  <input
+                                    type="number"
+                                    step="0.01"
+                                    value={modelForm.pricing_config.ageDeductions[ageKey as keyof typeof DEFAULT_PRICING_CONFIG.ageDeductions]}
+                                    onChange={(e) => setModelForm({
+                                      ...modelForm,
+                                      pricing_config: {
+                                        ...modelForm.pricing_config,
+                                        ageDeductions: {
+                                          ...modelForm.pricing_config.ageDeductions,
+                                          [ageKey]: Number(e.target.value)
+                                        }
+                                      }
+                                    })}
+                                    className="border border-zinc-300 rounded p-1 text-xs mt-0.5"
+                                  />
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Row 3: Hardware & Software Repair Deductions */}
+                      <div className="border-t border-zinc-200 pt-4">
+                        <label className="text-xs font-bold text-zinc-800 block mb-2">Hardware Repair Cost Deductions (₹)</label>
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 border border-zinc-200 rounded-xl p-3.5 bg-zinc-50/50">
+                          {Object.keys(DEFAULT_PRICING_CONFIG.hardware).map((hwKey) => (
+                            <div key={hwKey} className="flex flex-col">
+                              <span className="text-[10px] text-zinc-600 font-medium capitalize">{hwKey} Issue</span>
+                              <input
+                                type="number"
+                                value={modelForm.pricing_config.hardware[hwKey as keyof typeof DEFAULT_PRICING_CONFIG.hardware]}
+                                onChange={(e) => setModelForm({
+                                  ...modelForm,
+                                  pricing_config: {
+                                    ...modelForm.pricing_config,
+                                    hardware: {
+                                      ...modelForm.pricing_config.hardware,
+                                      [hwKey]: Number(e.target.value)
+                                    }
+                                  }
+                                })}
+                                className="border border-zinc-300 rounded p-1.5 text-xs mt-0.5"
+                              />
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div className="border-t border-zinc-200 pt-4">
+                        <label className="text-xs font-bold text-zinc-800 block mb-2">Software Issue Cost Deductions (₹)</label>
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 border border-zinc-200 rounded-xl p-3.5 bg-zinc-50/50">
+                          {Object.keys(DEFAULT_PRICING_CONFIG.software).map((swKey) => (
+                            <div key={swKey} className="flex flex-col">
+                              <span className="text-[10px] text-zinc-600 font-medium capitalize">{swKey === 'faceid' ? 'Face ID / Fingerprint' : swKey}</span>
+                              <input
+                                type="number"
+                                value={modelForm.pricing_config.software[swKey as keyof typeof DEFAULT_PRICING_CONFIG.software]}
+                                onChange={(e) => setModelForm({
+                                  ...modelForm,
+                                  pricing_config: {
+                                    ...modelForm.pricing_config,
+                                    software: {
+                                      ...modelForm.pricing_config.software,
+                                      [swKey]: Number(e.target.value)
+                                    }
+                                  }
+                                })}
+                                className="border border-zinc-300 rounded p-1.5 text-xs mt-0.5"
+                              />
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Accessories Section */}
+                      <div className="border-t border-zinc-200 pt-4">
+                        <label className="text-xs font-bold text-zinc-800 block mb-2">Accessory Bonuses (₹ added to price)</label>
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 border border-zinc-200 rounded-xl p-3.5 bg-zinc-50/50">
+                          {Object.keys(DEFAULT_PRICING_CONFIG.accessories).map((accKey) => (
+                            <div key={accKey} className="flex flex-col">
+                              <span className="text-[10px] text-zinc-600 font-medium capitalize">Has {accKey}</span>
+                              <input
+                                type="number"
+                                value={modelForm.pricing_config.accessories?.[accKey as keyof typeof DEFAULT_PRICING_CONFIG.accessories] ?? 0}
+                                onChange={(e) => setModelForm({
+                                  ...modelForm,
+                                  pricing_config: {
+                                    ...modelForm.pricing_config,
+                                    accessories: {
+                                      ...(modelForm.pricing_config.accessories || {}),
+                                      [accKey]: Number(e.target.value)
+                                    }
+                                  }
+                                })}
+                                className="border border-zinc-300 rounded p-1.5 text-xs mt-0.5"
+                              />
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Battery Deductions Detail Section */}
+                      <div className="border-t border-zinc-200 pt-4">
+                        <label className="text-xs font-bold text-zinc-800 block mb-2">
+                          Battery Health Deductions Details (₹)
+                        </label>
+                        {modelForm.pricing_config.battery.type === 'iphone' ? (
+                          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 border border-zinc-200 rounded-xl p-3.5 bg-zinc-50/50">
+                            {Object.keys(DEFAULT_PRICING_CONFIG.battery.iphoneDeductions).map((curveKey) => (
+                              <div key={curveKey} className="flex flex-col">
+                                <span className="text-[10px] text-zinc-600 font-medium">
+                                  {curveKey === 'below_75' ? 'Below 75%' : `${curveKey.replace('_', ' - ')}%`}
+                                </span>
+                                <input
+                                  type="number"
+                                  value={modelForm.pricing_config.battery.iphoneDeductions?.[curveKey] ?? 0}
+                                  onChange={(e) => setModelForm({
+                                    ...modelForm,
+                                    pricing_config: {
+                                      ...modelForm.pricing_config,
+                                      battery: {
+                                        ...modelForm.pricing_config.battery,
+                                        iphoneDeductions: {
+                                          ...(modelForm.pricing_config.battery.iphoneDeductions || {}),
+                                          [curveKey]: Number(e.target.value)
+                                        }
+                                      }
+                                    }
+                                  })}
+                                  className="border border-zinc-300 rounded p-1.5 text-xs mt-0.5"
+                                />
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <div className="grid grid-cols-3 gap-3 border border-zinc-200 rounded-xl p-3.5 bg-zinc-50/50">
+                            {Object.keys(DEFAULT_PRICING_CONFIG.battery.deductions).map((condKey) => (
+                              <div key={condKey} className="flex flex-col">
+                                <span className="text-[10px] text-zinc-600 font-medium capitalize">{condKey} Grade</span>
+                                <input
+                                  type="number"
+                                  value={modelForm.pricing_config.battery.deductions?.[condKey] ?? 0}
+                                  onChange={(e) => setModelForm({
+                                    ...modelForm,
+                                    pricing_config: {
+                                      ...modelForm.pricing_config,
+                                      battery: {
+                                        ...modelForm.pricing_config.battery,
+                                        deductions: {
+                                          ...(modelForm.pricing_config.battery.deductions || {}),
+                                          [condKey]: Number(e.target.value)
+                                        }
+                                      }
+                                    }
+                                  })}
+                                  className="border border-zinc-300 rounded p-1.5 text-xs mt-0.5"
+                                />
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="flex justify-end gap-2 pt-3 border-t border-zinc-200">
+                        <button
+                          onClick={() => setIsAddingModel(false)}
+                          className="px-4 py-2 text-sm text-zinc-600 hover:bg-zinc-100 rounded-lg font-medium"
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          onClick={async () => {
+                            if (!modelForm.id || !modelForm.name || !modelForm.base_price) return alert('All fields required');
+                            
+                            const method = isEditingModel ? 'PUT' : 'POST';
+                            await fetch('/api/admin/models', {
+                              method,
+                              headers: { 'Content-Type': 'application/json' },
+                              body: JSON.stringify(modelForm),
+                            });
+
+                            setIsAddingModel(false);
+                            setModelForm({
+                              id: '',
+                              brand_id: 'apple',
+                              name: '',
+                              base_price: 30000,
+                              pricing_config: JSON.parse(JSON.stringify(DEFAULT_PRICING_CONFIG))
+                            });
+                            fetchCatalogModels();
+                          }}
+                          className="px-4 py-2 text-sm bg-green-600 text-white hover:bg-green-700 rounded-lg font-medium shadow"
+                        >
+                          {isEditingModel ? 'Save Changes' : 'Create Model'}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
               </motion.div>
             )}
 

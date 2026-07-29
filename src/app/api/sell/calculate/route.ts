@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { calculatePrice, type PricingInput, type PriceBreakdownItem } from "@/lib/pricing";
+import { getModelPricingConfig } from "@/lib/brands";
 
 // Re-export types for any consumers that import from this route module directly
 export type { PriceBreakdownItem };
@@ -24,7 +25,8 @@ export async function POST(request: Request) {
       );
     }
 
-    const result = calculatePrice(body);
+    const config = await getModelPricingConfig(body.modelId);
+    const result = calculatePrice(body, config ?? undefined);
 
     if (!result.success) {
       return NextResponse.json({ success: false, error: result.error }, { status: 400 });
