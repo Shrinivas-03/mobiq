@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
-import { supabase } from "@/lib/supabase";
+import { supabaseAdmin } from "@/lib/supabase";
 import { signAdminToken, setAuthCookie } from "@/lib/auth";
 
 export async function POST(request: Request) {
@@ -17,7 +17,7 @@ export async function POST(request: Request) {
     }
 
     // ── Fetch the admin user ──
-    const { data: admin, error } = await supabase
+    const { data: admin, error } = await supabaseAdmin
       .from("admin_users")
       .select("id, email, password_hash, name, role, is_active")
       .eq("email", email.toLowerCase().trim())
@@ -49,7 +49,7 @@ export async function POST(request: Request) {
     }
 
     // ── Update last_login timestamp ──
-    await supabase
+    await supabaseAdmin
       .from("admin_users")
       .update({ last_login: new Date().toISOString() })
       .eq("id", admin.id);

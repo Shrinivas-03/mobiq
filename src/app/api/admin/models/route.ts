@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { supabase } from "@/lib/supabase";
+import { supabaseAdmin } from "@/lib/supabase";
 import { getCurrentAdmin } from "@/lib/auth";
 
 // GET — List all models (including inactive)
@@ -12,7 +12,7 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const brandId = searchParams.get("brandId");
 
-  let query = supabase.from("models").select("*");
+  let query = supabaseAdmin.from("models").select("*");
   if (brandId) query = query.eq("brand_id", brandId);
 
   const { data, error } = await query.order("name", { ascending: true });
@@ -42,7 +42,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from("models")
       .insert({
         id: id.toLowerCase().trim(),
@@ -88,7 +88,7 @@ export async function PUT(request: Request) {
     if (pricing_config !== undefined) updatePayload.pricing_config = pricing_config;
     if (is_active !== undefined) updatePayload.is_active = is_active;
 
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from("models")
       .update(updatePayload)
       .eq("id", id)
@@ -121,7 +121,7 @@ export async function DELETE(request: Request) {
       return NextResponse.json({ success: false, error: "Missing id parameter" }, { status: 400 });
     }
 
-    const { error } = await supabase.from("models").delete().eq("id", id);
+    const { error } = await supabaseAdmin.from("models").delete().eq("id", id);
 
     if (error) {
       return NextResponse.json({ success: false, error: error.message }, { status: 500 });

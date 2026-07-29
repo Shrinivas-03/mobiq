@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { supabase } from "@/lib/supabase";
+import { supabaseAdmin } from "@/lib/supabase";
 import { getCurrentAdmin } from "@/lib/auth";
 
 // ── GET /api/admin/inventory — list all inventory items ──
@@ -9,7 +9,7 @@ export async function GET() {
     return NextResponse.json({ success: false, error: "Not authenticated" }, { status: 401 });
   }
 
-  const { data, error } = await supabase
+  const { data, error } = await supabaseAdmin
     .from("device_inventory")
     .select("*")
     .order("acquired_at", { ascending: false });
@@ -39,7 +39,7 @@ export async function POST(request: Request) {
     const updatePayload: Record<string, unknown> = { status };
     if (status === "sold") updatePayload.sold_at = new Date().toISOString();
 
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from("device_inventory")
       .update(updatePayload)
       .eq("id", id)

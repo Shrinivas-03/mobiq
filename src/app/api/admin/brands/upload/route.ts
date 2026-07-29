@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { supabase } from "@/lib/supabase";
+import { supabaseAdmin } from "@/lib/supabase";
 import { getCurrentAdmin } from "@/lib/auth";
 
 export async function POST(request: Request) {
@@ -16,8 +16,25 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: false, error: "No image file provided" }, { status: 400 });
     }
 
-    // Sanitize and generate unique filename
+    // Enforce 5MB max file size
+    const MAX_SIZE = 5 * 1024 * 1024; // 5MB
+    if (file.size > MAX_SIZE) {
+      return NextResponse.json({ success: false, error: "File size exceeds 5MB limit" }, { status: 400 });
+    }
+
+    // Enforce file extension / MIME type whitelist
+    const allowedExtensions = ["png", "jpg", "jpeg", "webp"];
     const fileExt = file.name.split(".").pop()?.toLowerCase() || "png";
+    if (!allowedExtensions.includes(fileExt)) {
+      return NextResponse.json({ success: false, error: "Only PNG, JPG, JPEG, and WEBP formats are allowed" }, { status: 400 });
+    }
+
+    const allowedMimeTypes = ["image/png", "image/jpeg", "image/jpg", "image/webp"];
+    if (!allowedMimeTypes.includes(file.type)) {
+      return NextResponse.json({ success: false, error: "Invalid file type. Please upload a valid image" }, { status: 400 });
+    }
+
+    // Sanitize and generate unique filename
     const fileName = `brand-${Date.now()}-${Math.random().toString(36).substring(2, 7)}.${fileExt}`;
     const filePath = `logos/${fileName}`;
 
@@ -25,7 +42,7 @@ export async function POST(request: Request) {
     const buffer = Buffer.from(arrayBuffer);
 
     // Upload to Supabase Storage bucket 'brand-logos'
-    const { data, error } = await supabase.storage
+    const { data, error } = await supabaseAdmin.storage
       .from("brand-logos")
       .upload(filePath, buffer, {
         contentType: file.type || "image/png",
@@ -38,7 +55,7 @@ export async function POST(request: Request) {
     }
 
     // Get public URL
-    const { data: publicUrlData } = supabase.storage.from("brand-logos").getPublicUrl(data.path);
+    const { data: publicUrlData } = supabaseAdmin.storage.from("brand-logos").getPublicUrl(data.path);
 
     return NextResponse.json({
       success: true,

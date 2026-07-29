@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { supabase } from "@/lib/supabase";
+import { supabaseAdmin } from "@/lib/supabase";
 import { getCurrentAdmin } from "@/lib/auth";
 
 // ── POST /api/admin/testimonials — create testimonial ──
@@ -21,7 +21,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: false, error: "All fields are required" }, { status: 400 });
     }
 
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from("testimonials")
       .insert({
         client_name: client_name.trim(),
@@ -57,7 +57,7 @@ export async function DELETE(request: Request) {
       return NextResponse.json({ success: false, error: "Missing testimonial ID" }, { status: 400 });
     }
 
-    const { error } = await supabase
+    const { error } = await supabaseAdmin
       .from("testimonials")
       .delete()
       .eq("id", id);

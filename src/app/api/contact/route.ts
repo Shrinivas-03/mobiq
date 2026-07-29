@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { supabase } from "@/lib/supabase";
+import { supabaseAdmin } from "@/lib/supabase";
 import { getCurrentAdmin } from "@/lib/auth";
 
 // ── POST /api/contact — public form submission ──
@@ -20,7 +20,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: false, error: "Invalid email address." }, { status: 400 });
     }
 
-    const { error } = await supabase.from("contact_queries").insert({
+    const { error } = await supabaseAdmin.from("contact_queries").insert({
       name:    name.trim(),
       email:   email.trim().toLowerCase(),
       subject: subject.trim(),
@@ -52,7 +52,7 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const status = searchParams.get("status");
 
-  let query = supabase
+  let query = supabaseAdmin
     .from("contact_queries")
     .select("*")
     .order("created_at", { ascending: false });
@@ -84,7 +84,7 @@ export async function PATCH(request: Request) {
       return NextResponse.json({ success: false, error: "Missing id or status." }, { status: 400 });
     }
 
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from("contact_queries")
       .update({ status })
       .eq("id", id)

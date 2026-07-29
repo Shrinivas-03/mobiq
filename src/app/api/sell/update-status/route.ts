@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { supabase } from "@/lib/supabase";
+import { supabaseAdmin } from "@/lib/supabase";
 import { getCurrentAdmin } from "@/lib/auth";
 import { sendPickupEmail, sendCompletedEmail } from "@/lib/email";
 
@@ -37,7 +37,7 @@ export async function POST(request: Request) {
     if (actualAmount !== undefined) updatePayload.actual_amount = actualAmount;
 
     // 4. Update status in DB and fetch the full lead row in one query
-    const { data: lead, error } = await supabase
+    const { data: lead, error } = await supabaseAdmin
       .from("sell_leads")
       .update(updatePayload)
       .eq("id", id)
@@ -83,7 +83,7 @@ export async function POST(request: Request) {
       });
 
       // ── Auto-add to device inventory (upsert to avoid duplicates if re-saved) ──
-      supabase.from("device_inventory").upsert(
+      supabaseAdmin.from("device_inventory").upsert(
         {
           sell_lead_id:   lead.id,
           brand_id:       lead.brand_id,

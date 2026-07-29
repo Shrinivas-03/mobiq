@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server";
-import { supabase } from "@/lib/supabase";
+import { supabaseAdmin } from "@/lib/supabase";
 import { sendSellConfirmationEmail } from "@/lib/email";
 import { calculatePrice } from "@/lib/pricing";
 import { getModelPricingConfig } from "@/lib/brands";
+import { getCurrentAdmin } from "@/lib/auth";
 
 // ──────────────────────────────────────────────
 // TYPES
@@ -154,7 +155,7 @@ export async function POST(request: Request) {
       status: "pending",
     };
 
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from("sell_leads")
       .insert(leadRow)
       .select("id, quoted_price")
@@ -219,7 +220,12 @@ export async function POST(request: Request) {
 // ──────────────────────────────────────────────
 
 export async function GET() {
-  const { data, error } = await supabase
+  const admin = await getCurrentAdmin();
+  if (!admin) {
+    return NextResponse.json({ success: false, error: "Not authenticated" }, { status: 401 });
+  }
+
+  const { data, error } = await supabaseAdmin
     .from("sell_leads")
     .select("*")
     .order("created_at", { ascending: false });

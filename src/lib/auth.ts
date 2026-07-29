@@ -2,7 +2,7 @@ import { SignJWT, jwtVerify } from "jose";
 import { cookies } from "next/headers";
 
 const JWT_SECRET = new TextEncoder().encode(
-  process.env.JWT_SECRET ?? "mobiq-admin-secret-change-in-production"
+  process.env.JWT_SECRET ?? "shfgsjhdfgsdfgksdanxwf8etyfye4675674835^&*$*"
 );
 
 const COOKIE_NAME = "mobiq_admin_token";
