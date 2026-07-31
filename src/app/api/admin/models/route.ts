@@ -35,9 +35,14 @@ export async function POST(request: Request) {
     const body = await request.json();
     const { id, brand_id, name, base_price, pricing_config, is_active } = body;
 
-    if (!id || !brand_id || !name || base_price === undefined) {
+    let effectiveBasePrice = base_price !== undefined ? Number(base_price) : 0;
+    if (!effectiveBasePrice && pricing_config?.variantPrices) {
+      effectiveBasePrice = pricing_config.variantPrices["8_256"] || pricing_config.variantPrices["6_128"] || Object.values(pricing_config.variantPrices)[0] || 30000;
+    }
+
+    if (!id || !brand_id || !name || !effectiveBasePrice) {
       return NextResponse.json(
-        { success: false, error: "Missing required fields: id, brand_id, name, base_price" },
+        { success: false, error: "Missing required fields: id, brand_id, name, base_price/variantPrices" },
         { status: 400 }
       );
     }
@@ -48,7 +53,7 @@ export async function POST(request: Request) {
         id: id.toLowerCase().trim(),
         brand_id: brand_id.toLowerCase().trim(),
         name: name.trim(),
-        base_price: Number(base_price),
+        base_price: Number(effectiveBasePrice),
         pricing_config: pricing_config || null,
         is_active: is_active ?? true,
       })

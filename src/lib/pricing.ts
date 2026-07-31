@@ -5,8 +5,9 @@
 // ──────────────────────────────────────────────
 
 export interface ModelPricingConfig {
-  basePrice: number;
-  variantMultipliers: Record<string, number>;
+  basePrice?: number;
+  variantPrices?: Record<string, number>;
+  variantMultipliers?: Record<string, number>;
   ageDeductions: Record<string, number>;
   battery: {
     type: "iphone" | "android";
@@ -1323,7 +1324,7 @@ export function calculatePrice(input: PricingInput, customModelConfig?: ModelPri
     const basePrice = 30000;
     model = {
       basePrice,
-      variantMultipliers: { "6_128": 0.85, "8_128": 0.9, "8_256": 1.0, "12_256": 1.08, "12_512": 1.15 },
+      variantMultipliers: { "64gb": 0.70, "6_128": 0.85, "8_128": 0.9, "8_256": 1.0, "12_256": 1.08, "12_512": 1.15 },
       ageDeductions: { "0_3": 0.05, "3_6": 0.12, "6_11": 0.22, "11_plus": 0.38 },
       battery: { type: isIphone ? "iphone" : "android" },
       hardware: { screen: 3000, dead: 3500, body: 1200, panel: 2400, touch: 2700, button: 1000, bent: 2000, loose: 1500 },
@@ -1343,23 +1344,26 @@ export function calculatePrice(input: PricingInput, customModelConfig?: ModelPri
 
   const breakdown: PriceBreakdownItem[] = [];
 
-  // 1. Base price
-  const modelBase = model.basePrice;
-  breakdown.push({ label: "Base device value", amount: modelBase, type: "base" });
-
-  // 2. Variant multiplier
-  const variantMultiplier = model.variantMultipliers[variantId] ?? 1.0;
-  const variantAdjustedPrice = Math.round(modelBase * variantMultiplier);
-  const variantDiff = variantAdjustedPrice - modelBase;
-  if (variantDiff !== 0) {
-    breakdown.push({
-      label:  "Variant adjustment (" + variantId.replace("_", "GB / ") + "GB)",
-      amount: variantDiff,
-      type:   variantDiff > 0 ? "bonus" : "deduction",
-    });
+  // 1. Storage Variant Base Price
+  let variantBasePrice = 30000;
+  if (model.variantPrices && model.variantPrices[variantId] !== undefined) {
+    variantBasePrice = model.variantPrices[variantId];
+  } else if (model.basePrice !== undefined) {
+    const mult = model.variantMultipliers?.[variantId] ?? 1.0;
+    variantBasePrice = Math.round(model.basePrice * mult);
   }
 
-  let total = variantAdjustedPrice;
+  const variantLabel = variantId === "64gb" 
+    ? "64 GB" 
+    : (variantId.includes("_") ? variantId.replace("_", "GB / ") + "GB" : variantId.toUpperCase());
+
+  breakdown.push({
+    label: "Base device value (" + variantLabel + ")",
+    amount: variantBasePrice,
+    type: "base",
+  });
+
+  let total = variantBasePrice;
 
   // 3. Accessory bonuses
   const activeAccessoryBonuses = model.accessories ?? ACCESSORY_BONUSES;
@@ -1373,7 +1377,7 @@ export function calculatePrice(input: PricingInput, customModelConfig?: ModelPri
 
   // 4. Age depreciation
   const agePct  = model.ageDeductions[deviceAge] ?? 0;
-  const ageDed  = Math.round(variantAdjustedPrice * agePct);
+  const ageDed  = Math.round(variantBasePrice * agePct);
   if (ageDed > 0) {
     total -= ageDed;
     breakdown.push({ label: "Device age depreciation", amount: -ageDed, type: "deduction" });
@@ -1446,7 +1450,7 @@ export function calculatePrice(input: PricingInput, customModelConfig?: ModelPri
 
   return {
     success:    true,
-    basePrice:  modelBase,
+    basePrice:  variantBasePrice,
     finalPrice,
     breakdown,
   };

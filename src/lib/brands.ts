@@ -146,21 +146,27 @@ export async function getModelPricingConfig(modelId: string): Promise<ModelPrici
 
   if (data && data.base_price) {
     if (data.pricing_config && typeof data.pricing_config === "object") {
-      return {
-        ...data.pricing_config,
-        basePrice: data.base_price,
-      };
+      const cfg = { ...data.pricing_config, basePrice: data.base_price };
+      if (!cfg.variantPrices && cfg.variantMultipliers) {
+        cfg.variantPrices = {};
+        for (const [k, mult] of Object.entries(cfg.variantMultipliers)) {
+          cfg.variantPrices[k] = Math.round(data.base_price * Number(mult));
+        }
+      }
+      return cfg;
     }
 
+    const bp = data.base_price;
     // Default configuration template if custom pricing_config JSON isn't specified
     return {
-      basePrice: data.base_price,
-      variantMultipliers: {
-        "6_128": 0.85,
-        "8_128": 0.9,
-        "8_256": 1.0,
-        "12_256": 1.08,
-        "12_512": 1.15,
+      basePrice: bp,
+      variantPrices: {
+        "64gb": Math.round(bp * 0.70),
+        "6_128": Math.round(bp * 0.85),
+        "8_128": Math.round(bp * 0.90),
+        "8_256": bp,
+        "12_256": Math.round(bp * 1.08),
+        "12_512": Math.round(bp * 1.15),
       },
       ageDeductions: {
         "0_3": 0.05,
@@ -172,23 +178,23 @@ export async function getModelPricingConfig(modelId: string): Promise<ModelPrici
         type: modelId.startsWith("ip") ? "iphone" : "android",
       },
       hardware: {
-        screen: Math.round(data.base_price * 0.1),
-        dead: Math.round(data.base_price * 0.12),
-        body: Math.round(data.base_price * 0.04),
-        panel: Math.round(data.base_price * 0.08),
-        touch: Math.round(data.base_price * 0.09),
-        button: Math.round(data.base_price * 0.03),
-        bent: Math.round(data.base_price * 0.07),
-        loose: Math.round(data.base_price * 0.05),
+        screen: Math.round(bp * 0.1),
+        dead: Math.round(bp * 0.12),
+        body: Math.round(bp * 0.04),
+        panel: Math.round(bp * 0.08),
+        touch: Math.round(bp * 0.09),
+        button: Math.round(bp * 0.03),
+        bent: Math.round(bp * 0.07),
+        loose: Math.round(bp * 0.05),
       },
       software: {
-        wifi: Math.round(data.base_price * 0.04),
-        mic: Math.round(data.base_price * 0.04),
-        faceid: Math.round(data.base_price * 0.07),
-        charge: Math.round(data.base_price * 0.04),
-        camera: Math.round(data.base_price * 0.06),
-        bluetooth: Math.round(data.base_price * 0.03),
-        fingerprint: Math.round(data.base_price * 0.04),
+        wifi: Math.round(bp * 0.04),
+        mic: Math.round(bp * 0.04),
+        faceid: Math.round(bp * 0.07),
+        charge: Math.round(bp * 0.04),
+        camera: Math.round(bp * 0.06),
+        bluetooth: Math.round(bp * 0.03),
+        fingerprint: Math.round(bp * 0.04),
       },
     };
   }

@@ -63,7 +63,7 @@ export default function AdminDashboard() {
       deductions: { High: 0, Average: 1200, Poor: 3000 },
       iphoneDeductions: { "95_100": 0, "90_94": 800, "85_89": 1800, "80_84": 3500, "75_79": 5500, "below_75": 8000 }
     },
-    variantMultipliers: { "6_128": 0.85, "8_128": 0.90, "8_256": 1.00, "12_256": 1.08, "12_512": 1.15 },
+    variantPrices: { "64gb": 21000, "6_128": 25500, "8_128": 27000, "8_256": 30000, "12_256": 32400, "12_512": 34500 },
     ageDeductions: { "0_3": 0.05, "3_6": 0.12, "6_11": 0.22, "11_plus": 0.38 },
     hardware: { screen: 3000, dead: 3500, body: 1200, panel: 2400, touch: 2700, button: 1000, bent: 2000, loose: 1500 },
     software: { wifi: 1200, mic: 1200, faceid: 2500, charge: 1200, camera: 2000, bluetooth: 1000, fingerprint: 1200 },
@@ -833,9 +833,27 @@ export default function AdminDashboard() {
                                 <button
                                   onClick={() => {
                                   const dbConfig = m.pricing_config || {};
+                                  const base = m.base_price || 30000;
+                                  const variantPrices = dbConfig.variantPrices || (dbConfig.variantMultipliers ? {
+                                    "64gb": Math.round(base * (dbConfig.variantMultipliers["64gb"] ?? 0.70)),
+                                    "6_128": Math.round(base * (dbConfig.variantMultipliers["6_128"] ?? 0.85)),
+                                    "8_128": Math.round(base * (dbConfig.variantMultipliers["8_128"] ?? 0.90)),
+                                    "8_256": Math.round(base * (dbConfig.variantMultipliers["8_256"] ?? 1.00)),
+                                    "12_256": Math.round(base * (dbConfig.variantMultipliers["12_256"] ?? 1.08)),
+                                    "12_512": Math.round(base * (dbConfig.variantMultipliers["12_512"] ?? 1.15)),
+                                  } : {
+                                    "64gb": Math.round(base * 0.70),
+                                    "6_128": Math.round(base * 0.85),
+                                    "8_128": Math.round(base * 0.90),
+                                    "8_256": base,
+                                    "12_256": Math.round(base * 1.08),
+                                    "12_512": Math.round(base * 1.15),
+                                  });
+
                                   const mergedConfig = {
                                     ...DEFAULT_PRICING_CONFIG,
                                     ...dbConfig,
+                                    variantPrices,
                                     battery: {
                                       ...DEFAULT_PRICING_CONFIG.battery,
                                       ...(dbConfig.battery || {})
@@ -1036,17 +1054,6 @@ export default function AdminDashboard() {
                           </div>
 
                           <div>
-                            <label className="text-xs font-semibold text-zinc-600">Base Price Quote (₹)</label>
-                            <input
-                              type="number"
-                              placeholder="50000"
-                              value={modelForm.base_price}
-                              onChange={(e) => setModelForm({ ...modelForm, base_price: Number(e.target.value) })}
-                              className="w-full border border-zinc-300 rounded-lg p-2.5 text-sm mt-1 focus:ring-2 focus:ring-blue-500"
-                            />
-                          </div>
-
-                          <div>
                             <label className="text-xs font-semibold text-zinc-600">Battery Health Deductions Type</label>
                             <select
                               value={modelForm.pricing_config.battery.type}
@@ -1065,29 +1072,36 @@ export default function AdminDashboard() {
                           </div>
                         </div>
 
-                        {/* Column 2: Multipliers & Age Depreciation */}
+                        {/* Column 2: Storage Variant Base Prices & Age Depreciation */}
                         <div className="space-y-4">
                           <div>
-                            <label className="text-xs font-bold text-zinc-700 block mb-1">Variant Multipliers</label>
+                            <label className="text-xs font-bold text-zinc-700 block mb-1">Storage Variant Base Prices (₹)</label>
                             <div className="grid grid-cols-2 gap-2 border border-zinc-200 rounded-xl p-3 bg-zinc-50/50">
-                              {Object.keys(DEFAULT_PRICING_CONFIG.variantMultipliers).map((variantKey) => (
+                              {Object.keys(DEFAULT_PRICING_CONFIG.variantPrices).map((variantKey) => (
                                 <div key={variantKey} className="flex flex-col">
-                                  <span className="text-[10px] text-zinc-500 font-medium">{variantKey.replace('_', 'GB / ')}GB</span>
+                                  <span className="text-[10px] text-zinc-500 font-medium">
+                                    {variantKey === '64gb' ? '64 GB' : (variantKey.includes('_') ? `${variantKey.replace('_', 'GB / ')}GB` : variantKey.toUpperCase())}
+                                  </span>
                                   <input
                                     type="number"
-                                    step="0.01"
-                                    value={modelForm.pricing_config.variantMultipliers[variantKey as keyof typeof DEFAULT_PRICING_CONFIG.variantMultipliers]}
-                                    onChange={(e) => setModelForm({
-                                      ...modelForm,
-                                      pricing_config: {
-                                        ...modelForm.pricing_config,
-                                        variantMultipliers: {
-                                          ...modelForm.pricing_config.variantMultipliers,
-                                          [variantKey]: Number(e.target.value)
+                                    placeholder="30000"
+                                    value={modelForm.pricing_config.variantPrices?.[variantKey] ?? 0}
+                                    onChange={(e) => {
+                                      const val = Number(e.target.value);
+                                      const updatedPrices = {
+                                        ...(modelForm.pricing_config.variantPrices || {}),
+                                        [variantKey]: val
+                                      };
+                                      setModelForm({
+                                        ...modelForm,
+                                        base_price: updatedPrices["8_256"] || updatedPrices["6_128"] || val || modelForm.base_price,
+                                        pricing_config: {
+                                          ...modelForm.pricing_config,
+                                          variantPrices: updatedPrices
                                         }
-                                      }
-                                    })}
-                                    className="border border-zinc-300 rounded p-1 text-xs mt-0.5 focus:ring-1 focus:ring-blue-500"
+                                      });
+                                    }}
+                                    className="border border-zinc-300 rounded p-1 text-xs mt-0.5 focus:ring-1 focus:ring-blue-500 font-medium"
                                   />
                                 </div>
                               ))}
@@ -1276,7 +1290,7 @@ export default function AdminDashboard() {
                         </button>
                         <button
                           onClick={async () => {
-                            if (!modelForm.id || !modelForm.name || !modelForm.base_price) return alert('All fields required');
+                            if (!modelForm.id || !modelForm.name || !modelForm.pricing_config.variantPrices?.["8_256"]) return alert('All fields required — fill in at least the 8GB / 256GB storage variant price');
                             
                             const method = isEditingModel ? 'PUT' : 'POST';
                             await fetch('/api/admin/models', {

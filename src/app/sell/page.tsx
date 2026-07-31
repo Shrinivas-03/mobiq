@@ -169,6 +169,7 @@ const MODELS: Record<string, { id: string; name: string }[]> = {
 };
 
 const VARIANTS = [
+  { id: "64gb", name: "64 GB" },
   { id: "6_128", name: "6 GB / 128 GB" },
   { id: "8_128", name: "8 GB / 128 GB" },
   { id: "8_256", name: "8 GB / 256 GB" },
@@ -220,7 +221,7 @@ function SellFlow() {
   
   // Selection States
   const [selectedBrand, setSelectedBrand] = useState<string | null>(null);
-  const [selectedModel, setSelectedModel] = useState<{ id: string; name: string } | null>(null);
+  const [selectedModel, setSelectedModel] = useState<{ id: string; name: string; pricing_config?: any } | null>(null);
   const [selectedCity, setSelectedCity] = useState<string | null>(null);
   const [selectedVariant, setSelectedVariant] = useState<{ id: string; name: string } | null>(null);
   const [mobileTurnsOn, setMobileTurnsOn] = useState<boolean | null>(null);
@@ -239,6 +240,10 @@ function SellFlow() {
   const [batteryTypeSelection, setBatteryTypeSelection] = useState<"Poor"|"Average"|"High"|null>(null);
   
   const [deviceAge, setDeviceAge] = useState<string | null>(null);
+
+  const isIphoneBattery = selectedModel?.pricing_config?.battery?.type
+    ? selectedModel.pricing_config.battery.type === "iphone"
+    : (selectedBrand === "apple" || (selectedModel?.id ? selectedModel.id.startsWith("ip") : false));
 
   // API state
   const [calculatedPrice, setCalculatedPrice] = useState<number | null>(null);
@@ -265,7 +270,7 @@ function SellFlow() {
 
   // Dynamic Brands & Models state
   const [brandsList, setBrandsList] = useState<{ id: string; name: string; logo: string }[]>([]);
-  const [modelsMap, setModelsMap] = useState<Record<string, { id: string; name: string }[]>>({});
+  const [modelsMap, setModelsMap] = useState<Record<string, { id: string; name: string; pricing_config?: any }[]>>({});
   const [brandsLoading, setBrandsLoading] = useState(true);
 
   useEffect(() => {
@@ -293,10 +298,10 @@ function SellFlow() {
         .then((res) => res.json())
         .then((data) => {
           if (data.success && Array.isArray(data.models) && data.models.length > 0) {
-            const grouped: Record<string, { id: string; name: string }[]> = {};
-            data.models.forEach((m: { id: string; brand_id: string; name: string }) => {
+            const grouped: Record<string, { id: string; name: string; pricing_config?: any }[]> = {};
+            data.models.forEach((m: { id: string; brand_id: string; name: string; pricing_config?: any }) => {
               if (!grouped[m.brand_id]) grouped[m.brand_id] = [];
-              grouped[m.brand_id].push({ id: m.id, name: m.name });
+              grouped[m.brand_id].push({ id: m.id, name: m.name, pricing_config: m.pricing_config });
             });
             setModelsMap(grouped);
           } else {
@@ -399,8 +404,8 @@ function SellFlow() {
         accessories: { box: true, charger: true, invoice: true, warranty: true },
         hardwareDefects: [],
         softwareDefects: [],
-        batteryHealth:  selectedBrand === "apple" ? 100 : null,
-        batteryQuality: selectedBrand !== "apple" ? "High" : null,
+        batteryHealth:  isIphoneBattery ? 100 : null,
+        batteryQuality: !isIphoneBattery ? "High" : null,
         deviceAge: "0_3",
       }),
     })
@@ -432,7 +437,7 @@ function SellFlow() {
 
   // Formatting utils
   const getBatteryDisplay = () => {
-     if (selectedBrand === "apple") return batteryHealthInput ? `${batteryHealthInput}%` : "Not Specified";
+     if (isIphoneBattery) return batteryHealthInput ? `${batteryHealthInput}%` : "Not Specified";
      return batteryTypeSelection || "Not Specified";
   };
   
@@ -616,8 +621,14 @@ function SellFlow() {
                         No
                       </button>
                     </div>
+                    {mobileTurnsOn === false && (
+                      <div className="mt-4 p-4 bg-red-50 border border-red-200 text-red-700 rounded-xl flex items-center gap-2 font-bold animate-pulse text-sm">
+                        <AlertCircle className="w-5 h-5 flex-shrink-0" />
+                        <span>We can't sell this mobile since it does not turn on.</span>
+                      </div>
+                    )}
                  </div>
-                 <button disabled={mobileTurnsOn === null} onClick={() => setStep(mobileTurnsOn ? "accessories" : "quote")} className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-xl shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all text-lg">
+                 <button disabled={mobileTurnsOn === null || mobileTurnsOn === false} onClick={() => setStep(mobileTurnsOn ? "accessories" : "quote")} className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-xl shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all text-lg">
                    Get Exact Value
                  </button>
               </motion.div>
@@ -712,7 +723,7 @@ function SellFlow() {
                  </div>
                  <h1 className="text-3xl font-black text-blue-950 mb-6">Battery Health</h1>
                  
-                 {selectedBrand === "apple" ? (
+                 {isIphoneBattery ? (
                     <div className="bg-gray-50 p-8 rounded-2xl border border-gray-100 mb-8">
                        <p className="text-gray-600 font-medium mb-4">Enter maximum capacity shown in iPhone Battery Settings</p>
                        <div className="relative max-w-xs mx-auto text-left">
@@ -730,7 +741,7 @@ function SellFlow() {
                     </div>
                  )}
                  <button 
-                  disabled={(selectedBrand === "apple" && !batteryHealthInput) || (selectedBrand !== "apple" && !batteryTypeSelection)} 
+                  disabled={(isIphoneBattery && !batteryHealthInput) || (!isIphoneBattery && !batteryTypeSelection)} 
                   onClick={() => setStep("age")} 
                   className="w-full bg-blue-600 text-white font-bold py-4 rounded-xl shadow-lg disabled:opacity-50 transition-all text-lg"
                  >
@@ -884,8 +895,8 @@ function SellFlow() {
                                accessories,
                                hardwareDefects: selectedHardwareDefects,
                                softwareDefects: selectedSoftwareDefects,
-                               batteryHealth: batteryHealthInput ? parseInt(batteryHealthInput) : null,
-                               batteryQuality: batteryTypeSelection,
+                               batteryHealth: isIphoneBattery ? (batteryHealthInput ? parseInt(batteryHealthInput) : null) : null,
+                               batteryQuality: !isIphoneBattery ? batteryTypeSelection : null,
                                deviceAge: deviceAge ?? "",
                                quotedPrice: displayPrice,
                                customerName: formData.name,
