@@ -3,8 +3,8 @@ import Footer from "@/components/Footer";
 import TopBar from "@/components/TopBar";
 
 export const metadata = {
-  title: "Terms and Conditions - MobiQ",
-  description: "Read the Terms and Conditions of MobiQ before using our platform to sell your used devices.",
+  title: "Terms and Conditions - Qmobiles",
+  description: "Read the Terms and Conditions of Qmobiles before using our platform to sell your used devices.",
 };
 
 export default function TermsAndConditions() {
@@ -22,12 +22,12 @@ export default function TermsAndConditions() {
           <p className="text-sm text-gray-400">Last updated: July 2026</p>
           
           <p>
-            Please read these Terms and Conditions carefully before using our platform. By accessing or using MobiQ to sell your used mobile phones or other electronics, you agree to be bound by these Terms.
+            Please read these Terms and Conditions carefully before using our platform. By accessing or using Qmobiles to sell your used mobile phones or other electronics, you agree to be bound by these Terms.
           </p>
 
           <h2 className="text-2xl font-bold text-gray-900 mt-8">1. Ownership and Representation of Devices</h2>
           <p>
-            When selling a device on MobiQ, you represent, warrant, and confirm that:
+            When selling a device on Qmobiles, you represent, warrant, and confirm that:
           </p>
           <ul className="list-disc pl-5 space-y-2">
             <li>You are the sole and lawful owner of the device, or have explicit legal authority to sell it.</li>
@@ -47,17 +47,17 @@ export default function TermsAndConditions() {
 
           <h2 className="text-2xl font-bold text-gray-900 mt-8">4. Finality of Transaction</h2>
           <p>
-            Once our representative inspects the phone, you accept the final quote, and the instant payment is transferred, ownership of the device transfers completely to MobiQ. The sale is final and cannot be cancelled or refunded, and the device cannot be returned to you.
+            Once our representative inspects the phone, you accept the final quote, and the instant payment is transferred, ownership of the device transfers completely to Qmobiles. The sale is final and cannot be cancelled or refunded, and the device cannot be returned to you.
           </p>
 
           <h2 className="text-2xl font-bold text-gray-900 mt-8">5. Complete Data Removal Requirement</h2>
           <p>
-            You are solely responsible for backing up and removing all personal data, logins, accounts, photos, and files from your device. MobiQ is not liable for the loss or exposure of any data left on devices handed over to our representatives.
+            You are solely responsible for backing up and removing all personal data, logins, accounts, photos, and files from your device. Qmobiles is not liable for the loss or exposure of any data left on devices handed over to our representatives.
           </p>
 
           <h2 className="text-2xl font-bold text-gray-900 mt-8">6. Contact Information</h2>
           <p>
-            For any queries or concerns regarding these Terms, please contact us at <a href="mailto:info@themobbiq.com" className="text-green-600 font-bold hover:underline">info@themobbiq.com</a>.
+            For any queries or concerns regarding these Terms, please contact us at <a href="mailto:sell@qmobiles.in" className="text-green-600 font-bold hover:underline">sell@qmobiles.in</a>.
           </p>
         </div>
       </main>

@@ -114,7 +114,7 @@ export default function ContactUs() {
                         </div>
                         <div>
                             <h3 className="text-xl font-bold text-gray-900 mb-1">Email Address</h3>
-                            <a href="mailto:info@themobbiq.com" className="text-gray-600 hover:text-green-600 transition-colors">info@themobbiq.com</a>
+                            <a href="mailto:sell@qmobiles.in" className="text-gray-600 hover:text-green-600 transition-colors">sell@qmobiles.in</a>
                         </div>
                     </div>
 
@@ -126,7 +126,7 @@ export default function ContactUs() {
                         </div>
                         <div>
                             <h3 className="text-xl font-bold text-gray-900 mb-1">Phone Number</h3>
-                            <a href="tel:+919593299593" className="text-gray-600 hover:text-green-600 transition-colors">+91 95932 99593</a>
+                            <a href="tel:+917795470588" className="text-gray-600 hover:text-green-600 transition-colors">+91 77954 70588</a>
                         </div>
                     </div>
 
@@ -219,7 +219,7 @@ export default function ContactUs() {
                     allowFullScreen={false} 
                     loading="lazy" 
                     referrerPolicy="no-referrer-when-downgrade"
-                    title="MobiQ Location Map"
+                    title="Qmobiles Location Map"
                 ></iframe>
                 
                 {/* Floating WhatsApp Button (matches About Us style) */}

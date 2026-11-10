@@ -50,7 +50,7 @@ export async function POST(request: Request) {
     }
 
     // 4. Send status-specific emails (non-blocking)
-    const leadRef = `MOBIQ-${lead.id}`;
+    const leadRef = `QMOBILES-${lead.id}`;
 
     if (status === "picked_up") {
       sendPickupEmail({

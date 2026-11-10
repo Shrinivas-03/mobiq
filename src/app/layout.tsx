@@ -13,10 +13,10 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://www.themobiq.com'),
+  metadataBase: new URL('https://www.qmobiles.in'),
   title: {
-    default: "TheMobiQ - Sell Used Mobiles Online Instantly for Best Price",
-    template: "%s | TheMobiQ"
+    default: "Qmobiles - Sell Used Mobiles Online Instantly for Best Price",
+    template: "%s | Qmobiles"
   },
   description: "Sell your used devices instantly for the best price. Free doorstep pickup in Bangalore, Mysore, and Gulbarga (Kalaburagi). Instant cash payment for second hand, refurbished, and pre-owned smartphones.",
   keywords: [
@@ -42,9 +42,9 @@ export const metadata: Metadata = {
     "sell mobile bangalore", "sell phone bengaluru", "sell mobile mysore", "sell phone mysuru",
     "sell mobile gulbarga", "sell phone kalaburgi"
   ],
-  authors: [{ name: "TheMobiQ Team" }],
-  creator: "TheMobiQ",
-  publisher: "TheMobiQ",
+  authors: [{ name: "Qmobiles Team" }],
+  creator: "Qmobiles",
+  publisher: "Qmobiles",
   robots: {
     index: true,
     follow: true,
@@ -59,24 +59,24 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "en_IN",
-    url: "https://themobbiq.com",
-    siteName: "TheMobiQ",
-    title: "Sell Used Mobiles Online | Instant Cash | TheMobiQ",
+    url: "https://www.qmobiles.in",
+    siteName: "Qmobiles",
+    title: "Sell Used Mobiles Online | Instant Cash | Qmobiles",
     description: "Get the best price for your old, broken, or unused smartphone. We offer instant valuation, free doorstep pickup, and instant cash. Serving Bangalore, Mysore, and Gulbarga.",
     images: [
       {
-        url: "/logo.png",
-        width: 1200,
-        height: 630,
-        alt: "TheMobiQ - Sell Your Pre-Owned Device",
+        url: "/new-logo.jpeg",
+        width: 1254,
+        height: 1254,
+        alt: "Qmobiles - Sell Your Pre-Owned Device",
       }
     ]
   },
   twitter: {
     card: "summary_large_image",
-    title: "TheMobiQ - Sell Used Mobiles Instantly",
+    title: "Qmobiles - Sell Used Mobiles Instantly",
     description: "Sell your old mobile phone and get cash instantly. Free pickup available in top Karnataka cities.",
-    images: ["/logo.png"]
+    images: ["/new-logo.jpeg"]
   },
   icons: {
     icon: [

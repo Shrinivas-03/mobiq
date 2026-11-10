@@ -11,6 +11,6 @@ export default function robots(): MetadataRoute.Robots {
         "/api/admin/*"
       ],
     },
-    sitemap: "https://www.themobiq.com/sitemap.xml",
+    sitemap: "https://www.qmobiles.in/sitemap.xml",
   };
 }

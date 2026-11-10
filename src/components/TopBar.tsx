@@ -6,13 +6,13 @@ export default function TopBar() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center">
         {/* Left Side: Contact Info */}
         <div className="flex gap-6 items-center text-gray-700 font-medium">
-          <a href="tel:+919593299593" className="flex items-center gap-2 hover:text-green-600 transition-colors">
+          <a href="tel:+917795470588" className="flex items-center gap-2 hover:text-green-600 transition-colors">
             <Phone size={14} className="text-green-600" />
-            <span>+91 95932 99593</span>
+            <span>+91 77954 70588</span>
           </a>
-          <a href="mailto:info@themobbiq.com" className="flex items-center gap-2 hover:text-green-600 transition-colors">
+          <a href="mailto:sell@qmobiles.in" className="flex items-center gap-2 hover:text-green-600 transition-colors">
             <Mail size={14} className="text-gray-400" />
-            <span>info@themobbiq.com</span>
+            <span>sell@qmobiles.in</span>
           </a>
         </div>
 

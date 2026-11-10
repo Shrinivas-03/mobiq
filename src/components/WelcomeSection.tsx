@@ -14,12 +14,12 @@ export default function WelcomeSection() {
           viewport={{ once: true, margin: "-100px" }}
           transition={{ duration: 0.6 }}
         >
-          <div className="text-green-600 font-bold uppercase tracking-widest text-sm mb-3">About MobiQ</div>
+          <div className="text-green-600 font-bold uppercase tracking-widest text-sm mb-3">About Qmobiles</div>
           <h2 className="text-3xl md:text-4xl font-extrabold mb-6 text-gray-900 leading-snug">
-            Welcome to MobiQ, believe in us!
+            Welcome to Qmobiles, believe in us!
           </h2>
           <p className="text-gray-600 mb-8 leading-relaxed text-lg">
-            Welcome to MobiQ, the fastest growing portal to sell your old mobile phones quickly and easily for instant cash. With MobiQ, you can sell your used smartphones online right from the comfort of our home and get the best value for your device...
+            Welcome to Qmobiles, the fastest growing portal to sell your old mobile phones quickly and easily for instant cash. With Qmobiles, you can sell your used smartphones online right from the comfort of our home and get the best value for your device...
           </p>
           <Link 
             href="/about-us"
@@ -42,7 +42,7 @@ export default function WelcomeSection() {
           
           <div className="relative z-10 w-full h-full max-w-md bg-white border border-gray-100 shadow-2xl rounded-2xl overflow-hidden flex flex-col justify-between">
             <div className="w-full h-full relative">
-                <Image src="/welcome-devices.png" alt="Devices supported by MobiQ" fill sizes="(max-width: 768px) 100vw, 50vw" className="object-cover" />
+                <Image src="/welcome-devices.png" alt="Devices supported by Qmobiles" fill sizes="(max-width: 768px) 100vw, 50vw" className="object-cover" />
             </div>
             <div className="text-center py-4 bg-white/95 backdrop-blur-sm shadow-[0_-10px_10px_rgba(0,0,0,0.05)] absolute bottom-0 w-full text-gray-500 text-sm font-medium">Multiple Devices Supported</div>
           </div>

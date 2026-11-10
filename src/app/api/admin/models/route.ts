@@ -37,7 +37,13 @@ export async function POST(request: Request) {
 
     let effectiveBasePrice = base_price !== undefined ? Number(base_price) : 0;
     if (!effectiveBasePrice && pricing_config?.variantPrices) {
-      effectiveBasePrice = pricing_config.variantPrices["8_256"] || pricing_config.variantPrices["6_128"] || Object.values(pricing_config.variantPrices)[0] || 30000;
+      effectiveBasePrice =
+        pricing_config.variantPrices["256gb"] ||
+        pricing_config.variantPrices["8_256"] ||
+        pricing_config.variantPrices["128gb"] ||
+        pricing_config.variantPrices["6_128"] ||
+        Object.values(pricing_config.variantPrices)[0] ||
+        30000;
     }
 
     if (!id || !brand_id || !name || !effectiveBasePrice) {

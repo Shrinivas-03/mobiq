@@ -1,6 +1,8 @@
 import { createClient } from "@supabase/supabase-js";
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+// Ensure URL does not contain trailing slash or /rest/v1 suffix which causes PGRST125 in supabase-js
+const rawUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const supabaseUrl = rawUrl ? rawUrl.replace(/\/+$/, "").replace(/\/rest\/v1\/?$/, "") : "";
 const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 

@@ -12,16 +12,16 @@ export default function Header() {
   return (
     <header className="bg-white w-full sticky top-0 z-50 shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-20">
+        <div className="flex justify-between items-center h-24">
           {/* Logo */}
           <div className="flex-shrink-0 flex items-center">
             <Link href="/">
               <Image 
-                src="/logo.png" 
-                alt="MobiQ Logo" 
-                width={150} 
-                height={50} 
-                className="h-12 w-auto object-contain"
+                src="/new-logo.png" 
+                alt="Qmobiles Logo" 
+                width={130} 
+                height={91} 
+                className="h-20 w-auto object-contain"
                 priority
               />
             </Link>

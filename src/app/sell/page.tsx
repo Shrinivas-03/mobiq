@@ -103,18 +103,60 @@ const LooseScreenIcon = ({ className = "w-16 h-16" }) => (
 const BRANDS = [
   { id: "apple", name: "Apple", logo: "/apple.png" },
   { id: "samsung", name: "Samsung", logo: "/samsung.jpg" },
-  { id: "google", name: "Google", logo: "/google.png" },
-  { id: "oneplus", name: "OnePlus", logo: "/oneplus.png" }, 
-  { id: "mi", name: "MI", logo: "/mi.png" }, 
-  { id: "vivo", name: "Vivo", logo: "/vivo.png" },
-  { id: "oppo", name: "Oppo", logo: "/oppo.png" },
-  { id: "realme", name: "Realme", logo: "/realme.png" },
-  { id: "iqoo", name: "iQOO", logo: "/iqoo.png" },
-  { id: "motorola", name: "Motorola", logo: "/moto.png" },
+  { id: "other", name: "Other Brands", logo: "/moto.png" },
+];
+
+const OTHER_POPULAR_BRANDS = [
+  "Samsung",
+  "Google Pixel",
+  "OnePlus",
+  "Xiaomi / Redmi / Mi",
+  "Realme",
+  "Vivo",
+  "Oppo",
+  "iQOO",
+  "Motorola",
+  "Nothing",
+  "Asus / ROG",
+  "Poco",
+  "Infinix",
+  "Tecno",
+  "Honor",
+  "Other",
+];
+
+const OTHER_RAM_OPTIONS = [
+  "2 GB",
+  "3 GB",
+  "4 GB",
+  "6 GB",
+  "8 GB",
+  "12 GB",
+  "16 GB",
+  "24 GB",
+  "Other",
+];
+
+const OTHER_STORAGE_OPTIONS = [
+  "32 GB",
+  "64 GB",
+  "128 GB",
+  "256 GB",
+  "512 GB",
+  "1 TB",
+  "2 TB",
+  "Other",
 ];
 
 const MODELS: Record<string, { id: string; name: string }[]> = {
   apple: [
+    { id: "ip15pm", name: "iPhone 15 Pro Max" },
+    { id: "ip15p", name: "iPhone 15 Pro" },
+    { id: "ip15", name: "iPhone 15" },
+    { id: "ip14pm", name: "iPhone 14 Pro Max" },
+    { id: "ip14", name: "iPhone 14" },
+  ],
+  iphone: [
     { id: "ip15pm", name: "iPhone 15 Pro Max" },
     { id: "ip15p", name: "iPhone 15 Pro" },
     { id: "ip15", name: "iPhone 15" },
@@ -126,55 +168,26 @@ const MODELS: Record<string, { id: string; name: string }[]> = {
     { id: "s24", name: "Galaxy S24" },
     { id: "s23u", name: "Galaxy S23 Ultra" },
   ],
-  google: [
-    { id: "p8p", name: "Pixel 8 Pro" },
-    { id: "p8", name: "Pixel 8" },
-    { id: "p7p", name: "Pixel 7 Pro" },
-  ],
-  oneplus: [
-    { id: "op12", name: "OnePlus 12" },
-    { id: "op12r", name: "OnePlus 12R" },
-    { id: "op11", name: "OnePlus 11" },
-  ],
-  mi: [
-    { id: "mi14u", name: "Xiaomi 14 Ultra" },
-    { id: "mi14", name: "Xiaomi 14" },
-    { id: "mi13p", name: "Xiaomi 13 Pro" },
-  ],
-  vivo: [
-    { id: "vx100p", name: "Vivo X100 Pro" },
-    { id: "vx100", name: "Vivo X100" },
-    { id: "vv29", name: "Vivo V29" },
-  ],
-  oppo: [
-    { id: "findn3", name: "Find N3 Flip" },
-    { id: "reno11p", name: "Reno 11 Pro" },
-    { id: "reno11", name: "Reno 11" },
-  ],
-  realme: [
-    { id: "rm12p", name: "Realme 12 Pro+" },
-    { id: "rm12", name: "Realme 12" },
-    { id: "rm11p", name: "Realme 11 Pro" },
-  ],
-  iqoo: [
-    { id: "iq12", name: "iQOO 12" },
-    { id: "iqneo9", name: "iQOO Neo 9 Pro" },
-    { id: "iq11", name: "iQOO 11" },
-  ],
-  motorola: [
-    { id: "motoe50", name: "Edge 50 Pro" },
-    { id: "motoe40", name: "Edge 40" },
-    { id: "razr40", name: "Razr 40 Ultra" },
-  ],
 };
 
-const VARIANTS = [
+const APPLE_VARIANTS = [
+  { id: "64gb", name: "64 GB" },
+  { id: "128gb", name: "128 GB" },
+  { id: "256gb", name: "256 GB" },
+  { id: "512gb", name: "512 GB" },
+  { id: "1tb", name: "1 TB" },
+  { id: "2tb", name: "2 TB" },
+];
+
+const ANDROID_VARIANTS = [
   { id: "64gb", name: "64 GB" },
   { id: "6_128", name: "6 GB / 128 GB" },
   { id: "8_128", name: "8 GB / 128 GB" },
   { id: "8_256", name: "8 GB / 256 GB" },
   { id: "12_256", name: "12 GB / 256 GB" },
   { id: "12_512", name: "12 GB / 512 GB" },
+  { id: "12_1tb", name: "12 GB / 1 TB" },
+  { id: "16_2tb", name: "16 GB / 2 TB" },
 ];
 
 const CITIES = ["Bangalore", "Mysore", "Gulbarga/kalaburgi"];
@@ -209,7 +222,7 @@ const AGE_OPTIONS = [
 
 // ----------------- State Machine Definition ----------------- //
 type Step = 
-  "brand" | "model" | "city" | "variant" | "estimate" | 
+  "brand" | "other_device" | "model" | "city" | "variant" | "estimate" | 
   "accessories" | "hardware_defects" | "software_defects" | 
   "battery" | "age" | "quote" | "checkout" | "thank_you";
 
@@ -221,10 +234,22 @@ function SellFlow() {
   
   // Selection States
   const [selectedBrand, setSelectedBrand] = useState<string | null>(null);
+  const [selectedBrandName, setSelectedBrandName] = useState<string>("");
   const [selectedModel, setSelectedModel] = useState<{ id: string; name: string; pricing_config?: any } | null>(null);
   const [selectedCity, setSelectedCity] = useState<string | null>(null);
   const [selectedVariant, setSelectedVariant] = useState<{ id: string; name: string } | null>(null);
   const [mobileTurnsOn, setMobileTurnsOn] = useState<boolean | null>(null);
+
+  // Other Device Custom Specifications
+  const [isOtherFlow, setIsOtherFlow] = useState<boolean>(false);
+  const [otherBrand, setOtherBrand] = useState<string>("");
+  const [otherCustomBrand, setOtherCustomBrand] = useState<string>("");
+  const [otherModelName, setOtherModelName] = useState<string>("");
+  const [otherRam, setOtherRam] = useState<string>("8 GB");
+  const [otherCustomRam, setOtherCustomRam] = useState<string>("");
+  const [otherStorage, setOtherStorage] = useState<string>("128 GB");
+  const [otherCustomStorage, setOtherCustomStorage] = useState<string>("");
+  const [otherCity, setOtherCity] = useState<string>("Bangalore");
   
   const [accessories, setAccessories] = useState({
     box: true,
@@ -241,9 +266,11 @@ function SellFlow() {
   
   const [deviceAge, setDeviceAge] = useState<string | null>(null);
 
-  const isIphoneBattery = selectedModel?.pricing_config?.battery?.type
-    ? selectedModel.pricing_config.battery.type === "iphone"
-    : (selectedBrand === "apple" || (selectedModel?.id ? selectedModel.id.startsWith("ip") : false));
+  const isIphoneBattery = isOtherFlow
+    ? false
+    : (selectedModel?.pricing_config?.battery?.type
+        ? selectedModel.pricing_config.battery.type === "iphone"
+        : (selectedBrand === "apple" || selectedBrand === "iphone" || (selectedModel?.id ? selectedModel.id.startsWith("ip") : false)));
 
   // API state
   const [calculatedPrice, setCalculatedPrice] = useState<number | null>(null);
@@ -303,6 +330,13 @@ function SellFlow() {
               if (!grouped[m.brand_id]) grouped[m.brand_id] = [];
               grouped[m.brand_id].push({ id: m.id, name: m.name, pricing_config: m.pricing_config });
             });
+            // Ensure every instant-quote brand still has its default flagship
+            // models even when the DB only has models for some of them.
+            Object.entries(MODELS).forEach(([brandId, models]) => {
+              if (!grouped[brandId] || grouped[brandId].length === 0) {
+                grouped[brandId] = models;
+              }
+            });
             setModelsMap(grouped);
           } else {
             setModelsMap(MODELS);
@@ -334,11 +368,17 @@ function SellFlow() {
   };
 
   // History Tracking for Progress / Navigation
-  const historyOrder: Step[] = [
-    "brand", "model", "city", "variant", "estimate", 
-    "accessories", "hardware_defects", "software_defects", 
-    "battery", "age", "quote", "checkout", "thank_you"
-  ];
+  const historyOrder: Step[] = isOtherFlow
+    ? [
+        "brand", "other_device",
+        "accessories", "hardware_defects", "software_defects",
+        "battery", "age", "checkout", "thank_you"
+      ]
+    : [
+        "brand", "model", "city", "variant", "estimate", 
+        "accessories", "hardware_defects", "software_defects", 
+        "battery", "age", "quote", "checkout", "thank_you"
+      ];
   const currentStepIndex = historyOrder.indexOf(step);
 
   // Call the calculate API when moving to quote step
@@ -380,10 +420,19 @@ function SellFlow() {
 
   useEffect(() => {
     if (initialBrand && step === "brand" && !selectedBrand) {
-      const brandObj = brandsList.find((b) => b.id === initialBrand);
-      if (brandObj) {
-        setSelectedBrand(brandObj.id);
-        setStep("model");
+      if (initialBrand === "other") {
+        setIsOtherFlow(true);
+        setSelectedBrand("other");
+        setSelectedBrandName("Other");
+        setStep("other_device");
+      } else {
+        const brandObj = brandsList.find((b) => b.id === initialBrand);
+        if (brandObj) {
+          setIsOtherFlow(false);
+          setSelectedBrand(brandObj.id);
+          setSelectedBrandName(brandObj.name);
+          setStep("model");
+        }
       }
     }
   }, [initialBrand, step, selectedBrand, brandsList]);
@@ -420,7 +469,9 @@ function SellFlow() {
     if (currentStepIndex > 0 && step !== "thank_you") {
       setStep(historyOrder[currentStepIndex - 1]);
       setSearchQuery("");
-      if (step === "estimate") setMobileTurnsOn(null);
+      if (step === "estimate" || step === "accessories") {
+        if (!isOtherFlow && step === "estimate") setMobileTurnsOn(null);
+      }
     }
   };
 
@@ -429,6 +480,8 @@ function SellFlow() {
   };
 
   const activeBrandObj = brandsList.find((b) => b.id === selectedBrand);
+  const isAppleBrand = selectedBrand === "apple" || selectedBrand === "iphone" || (selectedModel?.id ? selectedModel.id.startsWith("ip") : false);
+  const activeVariants = isAppleBrand ? APPLE_VARIANTS : ANDROID_VARIANTS;
   const availableModels = selectedBrand && modelsMap[selectedBrand] ? modelsMap[selectedBrand] : [];
   
   const filteredBrands = brandsList.filter(b => b.name.toLowerCase().includes(searchQuery.toLowerCase()));
@@ -455,18 +508,29 @@ function SellFlow() {
       <main className="flex-grow flex flex-col py-8 px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto w-full">
         
         {/* Progress Tracker (hidden on early/late steps) */}
-        {currentStepIndex >= 4 && currentStepIndex <= 10 && (
+        {currentStepIndex >= (isOtherFlow ? 2 : 4) && currentStepIndex <= (isOtherFlow ? 7 : 10) && (
           <div className="mb-8">
               <div className="flex justify-between text-xs font-semibold text-gray-400 mb-2 uppercase tracking-wider">
                  <span>Device Info</span>
-                 <span className={currentStepIndex >= 4 ? "text-blue-600" : ""}>Estimate</span>
+                 <span className={currentStepIndex >= (isOtherFlow ? 3 : 4) ? "text-blue-600" : ""}>
+                   {isOtherFlow ? "Condition" : "Estimate"}
+                 </span>
                  <span className={currentStepIndex >= 5 ? "text-blue-600" : ""}>Details</span>
-                 <span className={currentStepIndex >= 10 ? "text-blue-600" : ""}>Quote</span>
+                 <span className={currentStepIndex >= (isOtherFlow ? 7 : 10) ? "text-blue-600" : ""}>
+                   {isOtherFlow ? "Contact" : "Quote"}
+                 </span>
               </div>
               <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
                   <div 
                     className="h-full bg-blue-600 transition-all duration-500 ease-out" 
-                    style={{ width: `${Math.max(10, ((currentStepIndex) / 10) * 100)}%` }} 
+                    style={{
+                      width: `${Math.max(
+                        10,
+                        isOtherFlow
+                          ? ((currentStepIndex - 2 + 1) / 6) * 100
+                          : (currentStepIndex / 10) * 100
+                      )}%`,
+                    }} 
                   />
               </div>
           </div>
@@ -506,13 +570,233 @@ function SellFlow() {
                       <div key={idx} className="h-32 border-2 border-gray-100 bg-gray-50 rounded-xl animate-pulse" />
                     ))
                   ) : (
-                    filteredBrands.map((brand) => (
-                      <button key={brand.id} onClick={() => { setSelectedBrand(brand.id); setSearchQuery(""); setStep("model"); }} className="flex flex-col items-center justify-center p-6 bg-white border-2 border-gray-100 rounded-xl hover:border-green-500 hover:shadow-lg transition-all">
-                        <img src={brand.logo} alt={brand.name} className="object-contain h-16 w-16 mb-3" />
-                        <span className="font-semibold text-gray-700">{brand.name}</span>
-                      </button>
-                    ))
+                    <>
+                      {filteredBrands.map((brand) => (
+                        <button
+                          key={brand.id}
+                          onClick={() => {
+                            if (brand.id === "other") {
+                              setIsOtherFlow(true);
+                              setSelectedBrand("other");
+                              setSelectedBrandName("Other");
+                              setSearchQuery("");
+                              setStep("other_device");
+                            } else {
+                              setIsOtherFlow(false);
+                              setSelectedBrand(brand.id);
+                              setSelectedBrandName(brand.name);
+                              setSearchQuery("");
+                              setStep("model");
+                            }
+                          }}
+                          className="flex flex-col items-center justify-center p-6 bg-white border-2 border-gray-100 rounded-xl hover:border-green-500 hover:shadow-lg transition-all"
+                        >
+                          <img src={brand.logo} alt={brand.name} className="object-contain h-16 w-16 mb-3" />
+                          <span className="font-semibold text-gray-700">{brand.name}</span>
+                        </button>
+                      ))}
+
+                      {/* Explicit "Other Mobile / Brand" Card if not already in filteredBrands */}
+                      {!filteredBrands.some((b) => b.id === "other") && (
+                        <button
+                          onClick={() => {
+                            setIsOtherFlow(true);
+                            setSelectedBrand("other");
+                            setSelectedBrandName("Other");
+                            setSearchQuery("");
+                            setStep("other_device");
+                          }}
+                          className="flex flex-col items-center justify-center p-6 bg-gradient-to-br from-zinc-50 to-blue-50/40 border-2 border-dashed border-blue-200 rounded-xl hover:border-blue-500 hover:shadow-lg transition-all group"
+                        >
+                          <Smartphone className="w-12 h-12 text-blue-500 mb-3 group-hover:scale-110 transition-transform" />
+                          <span className="font-bold text-blue-900 text-sm">Other Brands</span>
+                          <span className="text-[11px] text-zinc-500 mt-0.5">Redmi, Vivo, etc.</span>
+                        </button>
+                      )}
+                    </>
                   )}
+                </div>
+              </motion.div>
+            )}
+
+            {/* ------------ VIEW: OTHER DEVICE FORM ------------ */}
+            {step === "other_device" && (
+              <motion.div key="other_device" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="max-w-2xl mx-auto">
+                <div className="text-center mb-8">
+                  <div className="w-16 h-16 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-3">
+                    <Smartphone className="w-8 h-8" />
+                  </div>
+                  <h1 className="text-3xl md:text-4xl font-black text-blue-950 mb-2">Sell Other Mobile</h1>
+                  <p className="text-gray-500 text-sm md:text-base">
+                    Tell us about your device. Our team will verify its specifications and contact you with our best custom offer within 24 hours.
+                  </p>
+                </div>
+
+                <div className="bg-white border-2 border-gray-100 rounded-2xl p-6 sm:p-8 space-y-5 shadow-sm">
+                  {/* Brand dropdown */}
+                  <div>
+                    <label className="block text-sm font-bold text-gray-800 mb-1.5">
+                      Brand Name <span className="text-red-500">*</span>
+                    </label>
+                    <select
+                      value={otherBrand}
+                      onChange={(e) => setOtherBrand(e.target.value)}
+                      className="w-full border-2 border-gray-200 rounded-xl p-3.5 text-base font-medium text-gray-800 focus:outline-none focus:border-blue-500 bg-white"
+                    >
+                      <option value="">Select your phone brand...</option>
+                      {OTHER_POPULAR_BRANDS.map((b) => (
+                        <option key={b} value={b}>{b}</option>
+                      ))}
+                    </select>
+                    {otherBrand === "Other" && (
+                      <input
+                        type="text"
+                        placeholder="Please type your brand name..."
+                        value={otherCustomBrand}
+                        onChange={(e) => setOtherCustomBrand(e.target.value)}
+                        className="mt-2 w-full border-2 border-gray-200 rounded-xl p-3 text-sm focus:outline-none focus:border-blue-500"
+                      />
+                    )}
+                  </div>
+
+                  {/* Model Name */}
+                  <div>
+                    <label className="block text-sm font-bold text-gray-800 mb-1.5">
+                      Model Name / Series <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="e.g. Redmi Note 13 Pro+, OnePlus Nord CE 3, Vivo V29..."
+                      value={otherModelName}
+                      onChange={(e) => setOtherModelName(e.target.value)}
+                      className="w-full border-2 border-gray-200 rounded-xl p-3.5 text-base font-medium text-gray-800 focus:outline-none focus:border-blue-500"
+                    />
+                  </div>
+
+                  {/* RAM & Storage */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-bold text-gray-800 mb-1.5">
+                        RAM <span className="text-red-500">*</span>
+                      </label>
+                      <select
+                        value={otherRam}
+                        onChange={(e) => setOtherRam(e.target.value)}
+                        className="w-full border-2 border-gray-200 rounded-xl p-3.5 text-base font-medium text-gray-800 focus:outline-none focus:border-blue-500 bg-white"
+                      >
+                        {OTHER_RAM_OPTIONS.map((r) => (
+                          <option key={r} value={r}>{r}</option>
+                        ))}
+                      </select>
+                      {otherRam === "Other" && (
+                        <input
+                          type="text"
+                          placeholder="e.g. 18 GB"
+                          value={otherCustomRam}
+                          onChange={(e) => setOtherCustomRam(e.target.value)}
+                          className="mt-2 w-full border-2 border-gray-200 rounded-xl p-2.5 text-xs focus:outline-none focus:border-blue-500"
+                        />
+                      )}
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-bold text-gray-800 mb-1.5">
+                        Storage <span className="text-red-500">*</span>
+                      </label>
+                      <select
+                        value={otherStorage}
+                        onChange={(e) => setOtherStorage(e.target.value)}
+                        className="w-full border-2 border-gray-200 rounded-xl p-3.5 text-base font-medium text-gray-800 focus:outline-none focus:border-blue-500 bg-white"
+                      >
+                        {OTHER_STORAGE_OPTIONS.map((s) => (
+                          <option key={s} value={s}>{s}</option>
+                        ))}
+                      </select>
+                      {otherStorage === "Other" && (
+                        <input
+                          type="text"
+                          placeholder="e.g. 16 GB"
+                          value={otherCustomStorage}
+                          onChange={(e) => setOtherCustomStorage(e.target.value)}
+                          className="mt-2 w-full border-2 border-gray-200 rounded-xl p-2.5 text-xs focus:outline-none focus:border-blue-500"
+                        />
+                      )}
+                    </div>
+                  </div>
+
+                  {/* City */}
+                  <div>
+                    <label className="block text-sm font-bold text-gray-800 mb-1.5">
+                      Your City <span className="text-red-500">*</span>
+                    </label>
+                    <select
+                      value={otherCity}
+                      onChange={(e) => setOtherCity(e.target.value)}
+                      className="w-full border-2 border-gray-200 rounded-xl p-3.5 text-base font-medium text-gray-800 focus:outline-none focus:border-blue-500 bg-white"
+                    >
+                      {CITIES.map((c) => (
+                        <option key={c} value={c}>{c}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* Device turns on? */}
+                  <div className="pt-2">
+                    <label className="block text-sm font-bold text-gray-800 mb-2">
+                      Does the mobile turn on properly? <span className="text-red-500">*</span>
+                    </label>
+                    <div className="grid grid-cols-2 gap-3">
+                      <button
+                        type="button"
+                        onClick={() => setMobileTurnsOn(true)}
+                        className={`py-3.5 font-bold rounded-xl border-2 transition-all ${
+                          mobileTurnsOn === true
+                            ? "bg-green-50 border-green-500 text-green-700 shadow-sm"
+                            : "border-gray-200 text-gray-600 hover:border-gray-300"
+                        }`}
+                      >
+                        Yes, turns on
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setMobileTurnsOn(false)}
+                        className={`py-3.5 font-bold rounded-xl border-2 transition-all ${
+                          mobileTurnsOn === false
+                            ? "bg-red-50 border-red-500 text-red-700 shadow-sm"
+                            : "border-gray-200 text-gray-600 hover:border-gray-300"
+                        }`}
+                      >
+                        No, does not turn on
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Continue Button */}
+                  <div className="pt-4">
+                    <button
+                      type="button"
+                      disabled={
+                        !otherBrand ||
+                        (otherBrand === "Other" && !otherCustomBrand.trim()) ||
+                        !otherModelName.trim() ||
+                        mobileTurnsOn === null
+                      }
+                      onClick={() => {
+                        const finalBrand = otherBrand === "Other" ? otherCustomBrand.trim() : otherBrand;
+                        const finalRam = otherRam === "Other" ? otherCustomRam.trim() || "Custom" : otherRam;
+                        const finalStorage = otherStorage === "Other" ? otherCustomStorage.trim() || "Custom" : otherStorage;
+                        setSelectedBrand("other");
+                        setSelectedBrandName(finalBrand);
+                        setSelectedModel({ id: "custom", name: otherModelName.trim() });
+                        setSelectedVariant({ id: `${finalRam.replace(/\s+/g, '').toLowerCase()}_${finalStorage.replace(/\s+/g, '').toLowerCase()}`, name: `${finalRam} / ${finalStorage}` });
+                        setSelectedCity(otherCity);
+                        setStep("accessories");
+                      }}
+                      className="w-full bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-bold py-4 rounded-xl shadow-lg transition-all text-lg flex items-center justify-center gap-2"
+                    >
+                      Continue to Condition Details <ChevronRight className="w-5 h-5" />
+                    </button>
+                  </div>
                 </div>
               </motion.div>
             )}
@@ -576,7 +860,7 @@ function SellFlow() {
                    </div>
                  </div>
                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 max-w-4xl mx-auto">
-                   {VARIANTS.map((variant) => (
+                   {activeVariants.map((variant) => (
                      <button key={variant.id} onClick={() => { setSelectedVariant(variant); setStep("estimate"); }} className="group flex flex-col justify-center items-center py-8 border-2 border-gray-100 rounded-2xl hover:border-blue-500 hover:bg-blue-50/30 transition-all">
                         <Cpu className="w-10 h-10 text-gray-400 mb-4 group-hover:text-blue-500 transition-colors" />
                         <span className="font-bold text-gray-800 text-xl">{variant.name}</span>
@@ -770,12 +1054,21 @@ function SellFlow() {
                  )}
                  <button 
                    disabled={!deviceAge || priceLoading} 
-                   onClick={goToQuote} 
+                   onClick={() => {
+                     if (isOtherFlow) {
+                       // Skip automated pricing — proceed straight to customer contact details
+                       setCalculatedPrice(0);
+                       setConfirmedPrice(0);
+                       setStep("checkout");
+                     } else {
+                       goToQuote();
+                     }
+                   }} 
                    className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-xl shadow-lg disabled:opacity-50 transition-all text-lg flex justify-center items-center gap-2"
                  >
                    {priceLoading ? (
                      <><div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"/> Calculating...</>
-                   ) : "Check Exact Value"}
+                   ) : isOtherFlow ? "Continue to Contact Details" : "Check Exact Value"}
                  </button>
               </motion.div>
             )}
@@ -825,7 +1118,7 @@ function SellFlow() {
                     {/* Price Card */}
                     <div className="bg-white rounded-2xl p-8 border-2 border-green-500 shadow-xl shadow-green-500/10 text-center relative overflow-hidden">
                        <div className="absolute top-0 right-0 w-32 h-32 bg-green-500/10 rounded-full blur-3xl -mr-10 -mt-10"></div>
-                       <p className="text-green-600 font-bold mb-2 uppercase tracking-widest text-sm">MobiQ Quoted Price</p>
+                       <p className="text-green-600 font-bold mb-2 uppercase tracking-widest text-sm">Qmobiles Quoted Price</p>
                        <div className="text-5xl md:text-6xl font-black text-blue-950 mb-6 py-4">₹{displayPrice.toLocaleString()}</div>
                        <p className="text-gray-500 mb-8 text-sm">Valid for 3 days. Doorstep pickup available.</p>
                        
@@ -885,7 +1178,7 @@ function SellFlow() {
                              headers: { "Content-Type": "application/json" },
                              body: JSON.stringify({
                                brandId: selectedBrand,
-                               brandName: brandsList.find(b => b.id === selectedBrand)?.name ?? "",
+                               brandName: selectedBrandName || (brandsList.find(b => b.id === selectedBrand)?.name ?? (isOtherFlow ? "Other" : "")),
                                modelId: selectedModel?.id ?? "",
                                modelName: selectedModel?.name ?? "",
                                variantId: selectedVariant?.id ?? "",
@@ -898,7 +1191,7 @@ function SellFlow() {
                                batteryHealth: isIphoneBattery ? (batteryHealthInput ? parseInt(batteryHealthInput) : null) : null,
                                batteryQuality: !isIphoneBattery ? batteryTypeSelection : null,
                                deviceAge: deviceAge ?? "",
-                               quotedPrice: displayPrice,
+                               quotedPrice: isOtherFlow ? 0 : displayPrice,
                                customerName: formData.name,
                                customerPhone: formData.phone,
                                customerAltPhone: formData.altPhone,
@@ -940,21 +1233,31 @@ function SellFlow() {
                 </div>
                 <h1 className="text-4xl font-black text-blue-950 mb-4 tracking-tight">Thank You!</h1>
                 <p className="text-gray-500 text-lg mb-4 leading-relaxed">
-                  Your request to sell the <strong className="text-gray-800">{selectedModel?.name}</strong> has been received. Our executive will reach out within <strong className="text-gray-700">24 hours</strong> to schedule your free doorstep pickup.
+                  Your request to sell the <strong className="text-gray-800">{selectedBrandName ? `${selectedBrandName} ` : ""}{selectedModel?.name}</strong> has been received. Our executive will reach out within <strong className="text-gray-700">24 hours</strong> with {isOtherFlow || (confirmedPrice ?? displayPrice) === 0 ? "your valuation and doorstep pickup schedule" : "to schedule your free doorstep pickup"}.
                 </p>
                 {leadId && (
                   <p className="text-sm text-gray-400 mb-6">Reference ID: <code className="bg-gray-100 px-2 py-1 rounded font-mono text-gray-600">{leadId}</code></p>
                 )}
-                {/* Price Disclaimer Warning */}
+                {/* Price Disclaimer / Custom quote notification */}
                 <div className="mb-8 p-5 bg-amber-50 border border-amber-300 rounded-2xl text-left">
                   <div className="flex items-start gap-3">
                     <div className="flex-shrink-0 mt-0.5">
                       <HelpCircle className="w-5 h-5 text-amber-600" />
                     </div>
                     <div>
-                      <p className="font-bold text-amber-800 mb-1">Price Disclaimer</p>
+                      <p className="font-bold text-amber-800 mb-1">
+                        {isOtherFlow || (confirmedPrice ?? displayPrice) === 0 ? "Custom Device Valuation" : "Price Disclaimer"}
+                      </p>
                       <p className="text-amber-700 text-sm leading-relaxed">
-                        The quoted price of <strong>&#8377;{(confirmedPrice ?? displayPrice).toLocaleString()}</strong> is based on the details you provided. If our technician finds any <strong>unreported defects</strong>, inaccurate condition details, or <strong>missing accessories</strong> during physical inspection, <strong>the final offered price may be revised downward</strong>. Please ensure all details are accurate to avoid any difference at pickup.
+                        {isOtherFlow || (confirmedPrice ?? displayPrice) === 0 ? (
+                          <>
+                            Since your mobile model requires specialized assessment, our team will review the specifications you entered and contact you within <strong>24 hours</strong> with our highest possible cash offer.
+                          </>
+                        ) : (
+                          <>
+                            The quoted price of <strong>&#8377;{(confirmedPrice ?? displayPrice).toLocaleString()}</strong> is based on the details you provided. If our technician finds any <strong>unreported defects</strong>, inaccurate condition details, or <strong>missing accessories</strong> during physical inspection, <strong>the final offered price may be revised downward</strong>. Please ensure all details are accurate to avoid any difference at pickup.
+                          </>
+                        )}
                       </p>
                     </div>
                   </div>

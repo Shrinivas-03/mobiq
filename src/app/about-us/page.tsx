@@ -4,8 +4,8 @@ import TopBar from "@/components/TopBar";
 import Image from "next/image";
 
 export const metadata = {
-  title: "About Us - MobiQ",
-  description: "Learn more about MobiQ and what we do.",
+  title: "About Us - Qmobiles",
+  description: "Learn more about Qmobiles and what we do.",
 };
 
 export default function AboutUs() {
@@ -42,7 +42,7 @@ export default function AboutUs() {
               
               <div className="text-gray-600 leading-relaxed space-y-4">
                 <p>
-                  At MobiQ, we understand that selling your old smartphone can often be time-consuming and complicated. That's why we've created a platform designed to make the process simple, fast, and worry-free. Here's what sets us apart:
+                  At Qmobiles, we understand that selling your old smartphone can often be time-consuming and complicated. That's why we've created a platform designed to make the process simple, fast, and worry-free. Here's what sets us apart:
                 </p>
                 <ul className="list-disc pl-5 mt-4 space-y-2">
                     <li><strong className="text-gray-800">Best Value Guaranteed:</strong> Get the most competitive price for your old phone, backed by fair and transparent pricing.</li>
@@ -120,7 +120,7 @@ export default function AboutUs() {
                 <div className="w-full lg:w-1/2 lg:pl-16 text-white text-center lg:text-left">
                     <h2 className="text-4xl md:text-5xl font-extrabold mb-6 leading-tight drop-shadow-md">Core Values</h2>
                     <p className="text-lg md:text-xl font-medium leading-relaxed drop-shadow-sm opacity-90 max-w-lg mx-auto lg:mx-0">
-                        At MobiQ, our core values are built around the principles of transparency, convenience, security, customer satisfaction, sustainability, and trust. We believe in clear and honest communication, ensuring that our pricing is fair and transparent so that you always know exactly what you're getting for your device.
+                        At Qmobiles, our core values are built around the principles of transparency, convenience, security, customer satisfaction, sustainability, and trust. We believe in clear and honest communication, ensuring that our pricing is fair and transparent so that you always know exactly what you're getting for your device.
                     </p>
                 </div>
 

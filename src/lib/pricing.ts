@@ -4,6 +4,39 @@
 // /api/sell/submit (server-side validation).
 // ──────────────────────────────────────────────
 
+export function formatVariantLabel(variantId: string): string {
+  const map: Record<string, string> = {
+    "64gb": "64 GB",
+    "128gb": "128 GB",
+    "256gb": "256 GB",
+    "512gb": "512 GB",
+    "1tb": "1 TB",
+    "2tb": "2 TB",
+    "6_128": "6 GB / 128 GB",
+    "8_128": "8 GB / 128 GB",
+    "8_256": "8 GB / 256 GB",
+    "12_256": "12 GB / 256 GB",
+    "12_512": "12 GB / 512 GB",
+    "12_1tb": "12 GB / 1 TB",
+    "16_512": "16 GB / 512 GB",
+    "16_1tb": "16 GB / 1 TB",
+    "16_2tb": "16 GB / 2 TB",
+  };
+  if (map[variantId]) return map[variantId];
+  if (variantId.endsWith("gb")) {
+    return variantId.slice(0, -2) + " GB";
+  }
+  if (variantId.endsWith("tb")) {
+    return variantId.slice(0, -2) + " TB";
+  }
+  if (variantId.includes("_")) {
+    const [ram, storage] = variantId.split("_");
+    const formattedStorage = storage.endsWith("tb") ? storage.toUpperCase() : storage.endsWith("gb") ? storage.toUpperCase() : storage + " GB";
+    return `${ram} GB / ${formattedStorage}`;
+  }
+  return variantId.toUpperCase();
+}
+
 export interface ModelPricingConfig {
   basePrice?: number;
   variantPrices?: Record<string, number>;
@@ -23,11 +56,12 @@ export const MODEL_PRICING: Record<string, ModelPricingConfig> = {
   ip15pm: {
     basePrice: 85000,
     variantMultipliers: {
-      "6_128":  0.85,
-      "8_128":  0.90,
-      "8_256":  1.00,
-      "12_256": 1.08,
-      "12_512": 1.15,
+      "64gb":   0.70,
+      "128gb":  0.85,
+      "256gb":  1.00,
+      "512gb":  1.15,
+      "1tb":    1.25,
+      "2tb":    1.35,
     },
     ageDeductions: {
       "0_3":     0.05,
@@ -61,11 +95,12 @@ export const MODEL_PRICING: Record<string, ModelPricingConfig> = {
   ip15p: {
     basePrice: 75000,
     variantMultipliers: {
-      "6_128":  0.85,
-      "8_128":  0.90,
-      "8_256":  1.00,
-      "12_256": 1.08,
-      "12_512": 1.15,
+      "64gb":   0.70,
+      "128gb":  0.85,
+      "256gb":  1.00,
+      "512gb":  1.15,
+      "1tb":    1.25,
+      "2tb":    1.35,
     },
     ageDeductions: {
       "0_3":     0.05,
@@ -99,11 +134,12 @@ export const MODEL_PRICING: Record<string, ModelPricingConfig> = {
   ip15: {
     basePrice: 60000,
     variantMultipliers: {
-      "6_128":  0.85,
-      "8_128":  0.90,
-      "8_256":  1.00,
-      "12_256": 1.08,
-      "12_512": 1.15,
+      "64gb":   0.70,
+      "128gb":  0.85,
+      "256gb":  1.00,
+      "512gb":  1.15,
+      "1tb":    1.25,
+      "2tb":    1.35,
     },
     ageDeductions: {
       "0_3":     0.05,
@@ -137,11 +173,12 @@ export const MODEL_PRICING: Record<string, ModelPricingConfig> = {
   ip14pm: {
     basePrice: 55000,
     variantMultipliers: {
-      "6_128":  0.85,
-      "8_128":  0.90,
-      "8_256":  1.00,
-      "12_256": 1.08,
-      "12_512": 1.15,
+      "64gb":   0.70,
+      "128gb":  0.85,
+      "256gb":  1.00,
+      "512gb":  1.15,
+      "1tb":    1.25,
+      "2tb":    1.35,
     },
     ageDeductions: {
       "0_3":     0.05,
@@ -175,11 +212,12 @@ export const MODEL_PRICING: Record<string, ModelPricingConfig> = {
   ip14: {
     basePrice: 40000,
     variantMultipliers: {
-      "6_128":  0.85,
-      "8_128":  0.90,
-      "8_256":  1.00,
-      "12_256": 1.08,
-      "12_512": 1.15,
+      "64gb":   0.70,
+      "128gb":  0.85,
+      "256gb":  1.00,
+      "512gb":  1.15,
+      "1tb":    1.25,
+      "2tb":    1.35,
     },
     ageDeductions: {
       "0_3":     0.05,
@@ -1324,7 +1362,9 @@ export function calculatePrice(input: PricingInput, customModelConfig?: ModelPri
     const basePrice = 30000;
     model = {
       basePrice,
-      variantMultipliers: { "64gb": 0.70, "6_128": 0.85, "8_128": 0.9, "8_256": 1.0, "12_256": 1.08, "12_512": 1.15 },
+      variantMultipliers: isIphone
+        ? { "64gb": 0.70, "128gb": 0.85, "256gb": 1.0, "512gb": 1.15, "1tb": 1.25, "2tb": 1.35 }
+        : { "64gb": 0.70, "6_128": 0.85, "8_128": 0.9, "8_256": 1.0, "12_256": 1.08, "12_512": 1.15, "12_1tb": 1.25, "16_2tb": 1.35 },
       ageDeductions: { "0_3": 0.05, "3_6": 0.12, "6_11": 0.22, "11_plus": 0.38 },
       battery: { type: isIphone ? "iphone" : "android" },
       hardware: { screen: 3000, dead: 3500, body: 1200, panel: 2400, touch: 2700, button: 1000, bent: 2000, loose: 1500 },
@@ -1353,9 +1393,7 @@ export function calculatePrice(input: PricingInput, customModelConfig?: ModelPri
     variantBasePrice = Math.round(model.basePrice * mult);
   }
 
-  const variantLabel = variantId === "64gb" 
-    ? "64 GB" 
-    : (variantId.includes("_") ? variantId.replace("_", "GB / ") + "GB" : variantId.toUpperCase());
+  const variantLabel = formatVariantLabel(variantId);
 
   breakdown.push({
     label: "Base device value (" + variantLabel + ")",

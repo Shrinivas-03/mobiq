@@ -11,9 +11,9 @@ export const metadata: Metadata = {
     'sell used phones in Kalaburagi', 'buy used phones Bangalore', 'used mobiles Mysore'
   ],
   openGraph: {
-    title: 'Sell Your Mobile Phone | MobiQ',
+    title: 'Sell Your Mobile Phone | Qmobiles',
     description: 'Get an instant quote for your old smartphone today. Best rates and instant cash in your city.',
-    url: 'https://www.themobiq.com/sell',
+    url: 'https://www.qmobiles.in/sell',
   }
 };
 

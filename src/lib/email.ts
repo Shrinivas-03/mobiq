@@ -119,7 +119,7 @@ export function buildConfirmationEmail(data: SellConfirmationEmailData): { html:
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>TheMobiQ – Sell Request Confirmation</title>
+  <title>Qmobiles – Sell Request Confirmation</title>
 </head>
 <body style="margin:0;padding:0;background:#f1f5f9;font-family:'Segoe UI',Helvetica,Arial,sans-serif;">
   <table width="100%" cellpadding="0" cellspacing="0" style="background:#f1f5f9;padding:32px 0;">
@@ -129,7 +129,7 @@ export function buildConfirmationEmail(data: SellConfirmationEmailData): { html:
         <!-- Header -->
         <tr>
           <td style="background:linear-gradient(135deg,#1e3a5f 0%,#0ea5e9 100%);padding:32px 40px;text-align:center;">
-            <h1 style="margin:0;color:#ffffff;font-size:28px;font-weight:800;letter-spacing:-0.5px;">TheMobiQ</h1>
+            <h1 style="margin:0;color:#ffffff;font-size:28px;font-weight:800;letter-spacing:-0.5px;">Qmobiles</h1>
             <p style="margin:8px 0 0;color:#bae6fd;font-size:14px;">Sell Request Confirmation</p>
           </td>
         </tr>
@@ -139,25 +139,24 @@ export function buildConfirmationEmail(data: SellConfirmationEmailData): { html:
           <td style="padding:36px 40px 0;">
             <h2 style="margin:0 0 8px;font-size:22px;color:#0f172a;">Hi ${customerName} 👋</h2>
             <p style="margin:0;color:#475569;font-size:15px;line-height:1.6;">
-              Thank you for choosing <strong>TheMobiQ</strong>! Your sell request has been received successfully.
+              Thank you for choosing <strong>Qmobiles</strong>! Your sell request has been received successfully.
               Our team will contact you within <strong>24 hours</strong> to schedule your free doorstep pickup.
             </p>
             <p style="margin:12px 0 0;color:#475569;font-size:13px;">Reference ID: <code style="background:#f1f5f9;padding:2px 8px;border-radius:4px;font-family:monospace;font-weight:600;">${leadId}</code></p>
           </td>
         </tr>
 
-        <!-- Warning Banner -->
+        <!-- Warning / Review Banner -->
         <tr>
           <td style="padding:20px 40px 0;">
             <table width="100%" cellpadding="0" cellspacing="0" style="background:#fffbeb;border:1px solid #fcd34d;border-radius:10px;">
               <tr>
                 <td style="padding:16px 20px;">
-                  <p style="margin:0;font-size:13px;color:#92400e;font-weight:700;margin-bottom:6px;">⚠️  Important Price Disclaimer</p>
+                  <p style="margin:0;font-size:13px;color:#92400e;font-weight:700;margin-bottom:6px;">⚠️ ${quotedPrice > 0 ? "Important Price Disclaimer" : "Custom Device Quote"}</p>
                   <p style="margin:0;font-size:13px;color:#78350f;line-height:1.6;">
-                    The quoted price of <strong>₹${quotedPrice.toLocaleString("en-IN")}</strong> is based on the information you provided.
-                    If our technician finds any <strong>unreported defects, inaccurate condition details, or missing accessories</strong>
-                    during the physical inspection, <strong>the final offer price may be revised downward</strong>.
-                    Please ensure all details are accurate to avoid any difference at the time of pickup.
+                    ${quotedPrice > 0 
+                      ? `The quoted price of <strong>₹${quotedPrice.toLocaleString("en-IN")}</strong> is based on the information you provided. If our technician finds any <strong>unreported defects, inaccurate condition details, or missing accessories</strong> during the physical inspection, <strong>the final offer price may be revised downward</strong>. Please ensure all details are accurate to avoid any difference at the time of pickup.`
+                      : `We have received your device configuration and details. Our team will review your mobile specifications and contact you within <strong>24 hours</strong> with the best valuation and doorstep pickup schedule.`}
                   </p>
                 </td>
               </tr>
@@ -165,15 +164,21 @@ export function buildConfirmationEmail(data: SellConfirmationEmailData): { html:
           </td>
         </tr>
 
-        <!-- Quoted Price Highlight -->
+        <!-- Quoted Price Highlight or Callback Highlight -->
         <tr>
           <td style="padding:24px 40px;">
             <table width="100%" cellpadding="0" cellspacing="0" style="background:linear-gradient(135deg,#ecfdf5,#d1fae5);border:2px solid #10b981;border-radius:12px;">
               <tr>
                 <td style="padding:24px;text-align:center;">
-                  <p style="margin:0 0 4px;font-size:12px;font-weight:700;color:#059669;letter-spacing:1.5px;text-transform:uppercase;">TheMobiQ Quoted Price</p>
-                  <p style="margin:0;font-size:44px;font-weight:900;color:#0f172a;">₹${quotedPrice.toLocaleString("en-IN")}</p>
-                  <p style="margin:6px 0 0;font-size:12px;color:#6b7280;">Valid for 3 days · Doorstep pickup available</p>
+                  ${quotedPrice > 0 ? `
+                    <p style="margin:0 0 4px;font-size:12px;font-weight:700;color:#059669;letter-spacing:1.5px;text-transform:uppercase;">Qmobiles Quoted Price</p>
+                    <p style="margin:0;font-size:44px;font-weight:900;color:#0f172a;">₹${quotedPrice.toLocaleString("en-IN")}</p>
+                    <p style="margin:6px 0 0;font-size:12px;color:#6b7280;">Valid for 3 days · Doorstep pickup available</p>
+                  ` : `
+                    <p style="margin:0 0 4px;font-size:12px;font-weight:700;color:#059669;letter-spacing:1.5px;text-transform:uppercase;">Estimation In Progress</p>
+                    <p style="margin:0;font-size:28px;font-weight:900;color:#0f172a;">Contacting in 24 Hours</p>
+                    <p style="margin:6px 0 0;font-size:12px;color:#6b7280;">Our executive will call you with the best price for your device</p>
+                  `}
                 </td>
               </tr>
             </table>
@@ -246,8 +251,8 @@ export function buildConfirmationEmail(data: SellConfirmationEmailData): { html:
         <!-- Footer -->
         <tr>
           <td style="background:#f8fafc;padding:24px 40px;border-top:1px solid #e2e8f0;text-align:center;">
-            <p style="margin:0 0 4px;font-size:13px;color:#64748b;">Need help? Contact us at <a href="mailto:info@themobbiq.com" style="color:#0ea5e9;text-decoration:none;">info@themobbiq.com</a> or call <a href="tel:+919593299593" style="color:#0ea5e9;text-decoration:none;">+91 95932 99593</a></p>
-            <p style="margin:8px 0 0;font-size:12px;color:#94a3b8;">© ${new Date().getFullYear()} TheMobiQ. J.P Nagar, Phase 1, Bengaluru 560078.</p>
+            <p style="margin:0 0 4px;font-size:13px;color:#64748b;">Need help? Contact us at <a href="mailto:sell@qmobiles.in" style="color:#0ea5e9;text-decoration:none;">sell@qmobiles.in</a> or call <a href="tel:+917795470588" style="color:#0ea5e9;text-decoration:none;">+91 77954 70588</a></p>
+            <p style="margin:8px 0 0;font-size:12px;color:#94a3b8;">© ${new Date().getFullYear()} Qmobiles. J.P Nagar, Phase 1, Bengaluru 560078.</p>
           </td>
         </tr>
       </table>
@@ -258,18 +263,20 @@ export function buildConfirmationEmail(data: SellConfirmationEmailData): { html:
 
   // Plain-text fallback
   const text = `
-TheMobiQ – Sell Request Confirmation
+Qmobiles – Sell Request Confirmation
 Reference ID: ${leadId}
 
 Hi ${customerName},
 
-Your sell request for ${modelName} (${variantName}) has been received!
+Your sell request for ${brandName} ${modelName} (${variantName}) has been received!
 
-⚠ IMPORTANT: The quoted price of ₹${quotedPrice.toLocaleString("en-IN")} is based on the details you provided.
+${quotedPrice > 0
+  ? `⚠ IMPORTANT: The quoted price of ₹${quotedPrice.toLocaleString("en-IN")} is based on the details you provided.
 If unreported defects or inaccurate condition details are found during inspection, the final price may be revised.
 
 --- QUOTED PRICE ---
-₹${quotedPrice.toLocaleString("en-IN")} (valid 3 days)
+₹${quotedPrice.toLocaleString("en-IN")} (valid 3 days)`
+  : `Our team will review your device specifications and contact you within 24 hours with the best valuation and doorstep pickup schedule.`}
 
 --- DEVICE DETAILS ---
 Brand:      ${brandName}
@@ -290,7 +297,7 @@ Phone:   ${customerPhone}
 Address: ${customerAddress}
 
 Our team will contact you within 24 hours.
-For queries: info@themobbiq.com | +91 95932 99593
+For queries: sell@qmobiles.in | +91 77954 70588
 `;
 
   return { html, text };
@@ -315,13 +322,13 @@ export async function sendSellConfirmationEmail(data: SellConfirmationEmailData)
   const transporter = createTransporter();
   const { html, text } = buildConfirmationEmail(data);
 
-  const fromName = process.env.SMTP_FROM_NAME ?? "TheMobiQ";
+  const fromName = process.env.SMTP_FROM_NAME ?? "Qmobiles";
   const fromEmail = process.env.SMTP_FROM_EMAIL ?? process.env.SMTP_USER!;
 
   await transporter.sendMail({
     from: `"${fromName}" <${fromEmail}>`,
     to: data.customerEmail,
-    subject: `✅ TheMobiQ – Your sell request for ${data.modelName} is confirmed!`,
+    subject: `✅ Qmobiles – Your sell request for ${data.modelName} is confirmed!`,
     html,
     text,
   });
@@ -343,7 +350,7 @@ export async function sendPickupEmail(params: {
   city: string;
 }) {
   const transporter = createTransporter();
-  const fromName = process.env.SMTP_FROM_NAME ?? "TheMobiQ";
+  const fromName = process.env.SMTP_FROM_NAME ?? "Qmobiles";
   const fromEmail = process.env.SMTP_FROM_EMAIL ?? process.env.SMTP_USER!;
 
   const html = `
@@ -352,7 +359,7 @@ export async function sendPickupEmail(params: {
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>TheMobiQ – Pickup Scheduled</title>
+  <title>Qmobiles – Pickup Scheduled</title>
 </head>
 <body style="margin:0;padding:0;background:#f1f5f9;font-family:'Segoe UI',Helvetica,Arial,sans-serif;">
   <table width="100%" cellpadding="0" cellspacing="0" style="background:#f1f5f9;padding:32px 0;">
@@ -362,7 +369,7 @@ export async function sendPickupEmail(params: {
         <!-- Header -->
         <tr>
           <td style="background:linear-gradient(135deg,#1e3a5f 0%,#0ea5e9 100%);padding:32px 40px;text-align:center;">
-            <h1 style="margin:0;color:#ffffff;font-size:28px;font-weight:800;letter-spacing:-0.5px;">TheMobiQ</h1>
+            <h1 style="margin:0;color:#ffffff;font-size:28px;font-weight:800;letter-spacing:-0.5px;">Qmobiles</h1>
             <p style="margin:8px 0 0;color:#bae6fd;font-size:14px;">Pickup Confirmation</p>
           </td>
         </tr>
@@ -381,7 +388,7 @@ export async function sendPickupEmail(params: {
           <td style="padding:32px 40px 0;">
             <h2 style="margin:0 0 12px;font-size:20px;color:#0f172a;">Hi ${params.customerName} 👋</h2>
             <p style="margin:0;color:#475569;font-size:15px;line-height:1.7;">
-              Great news! The <strong>TheMobiQ team is coming</strong> to pick up your 
+              Great news! The <strong>Qmobiles team is coming</strong> to pick up your 
               <strong>${params.modelName} (${params.variantName})</strong>.<br/>
               Please ensure yourself or a responsible person is available at the pickup address.
             </p>
@@ -420,8 +427,8 @@ export async function sendPickupEmail(params: {
         <!-- Footer -->
         <tr>
           <td style="background:#f8fafc;padding:24px 40px;border-top:1px solid #e2e8f0;text-align:center;">
-            <p style="margin:0 0 4px;font-size:13px;color:#64748b;">Questions? Reach us at <a href="mailto:info@themobbiq.com" style="color:#0ea5e9;text-decoration:none;">info@themobbiq.com</a> or <a href="tel:+919593299593" style="color:#0ea5e9;text-decoration:none;">+91 95932 99593</a></p>
-            <p style="margin:8px 0 0;font-size:12px;color:#94a3b8;">© ${new Date().getFullYear()} TheMobiQ. J.P Nagar, Phase 1, Bengaluru 560078.</p>
+            <p style="margin:0 0 4px;font-size:13px;color:#64748b;">Questions? Reach us at <a href="mailto:sell@qmobiles.in" style="color:#0ea5e9;text-decoration:none;">sell@qmobiles.in</a> or <a href="tel:+917795470588" style="color:#0ea5e9;text-decoration:none;">+91 77954 70588</a></p>
+            <p style="margin:8px 0 0;font-size:12px;color:#94a3b8;">© ${new Date().getFullYear()} Qmobiles. J.P Nagar, Phase 1, Bengaluru 560078.</p>
           </td>
         </tr>
       </table>
@@ -431,7 +438,7 @@ export async function sendPickupEmail(params: {
 </html>`;
 
   const text = `
-TheMobiQ – Pickup Scheduled
+Qmobiles – Pickup Scheduled
 Hi ${params.customerName},
 
 Our team is coming to pick up your ${params.modelName} (${params.variantName}).
@@ -443,13 +450,13 @@ Reference ID: ${params.leadId}
 Keep your device and all accessories ready. 
 Our executive may call before arriving — please keep your phone (${params.customerPhone}) accessible.
 
-For queries: info@themobbiq.com | +91 95932 99593
+For queries: sell@qmobiles.in | +91 77954 70588
 `;
 
   await transporter.sendMail({
     from: `"${fromName}" <${fromEmail}>`,
     to: params.customerEmail,
-    subject: `🛵 TheMobiQ – Our team is coming to pick up your ${params.modelName}!`,
+    subject: `🛵 Qmobiles – Our team is coming to pick up your ${params.modelName}!`,
     html,
     text,
   });
@@ -468,7 +475,7 @@ export async function sendCompletedEmail(params: {
   quotedPrice: number;
 }) {
   const transporter = createTransporter();
-  const fromName = process.env.SMTP_FROM_NAME ?? "TheMobiQ";
+  const fromName = process.env.SMTP_FROM_NAME ?? "Qmobiles";
   const fromEmail = process.env.SMTP_FROM_EMAIL ?? process.env.SMTP_USER!;
 
   const html = `
@@ -477,7 +484,7 @@ export async function sendCompletedEmail(params: {
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>TheMobiQ – Order Completed</title>
+  <title>Qmobiles – Order Completed</title>
 </head>
 <body style="margin:0;padding:0;background:#f1f5f9;font-family:'Segoe UI',Helvetica,Arial,sans-serif;">
   <table width="100%" cellpadding="0" cellspacing="0" style="background:#f1f5f9;padding:32px 0;">
@@ -487,7 +494,7 @@ export async function sendCompletedEmail(params: {
         <!-- Header -->
         <tr>
           <td style="background:linear-gradient(135deg,#1e3a5f 0%,#0ea5e9 100%);padding:32px 40px;text-align:center;">
-            <h1 style="margin:0;color:#ffffff;font-size:28px;font-weight:800;letter-spacing:-0.5px;">TheMobiQ</h1>
+            <h1 style="margin:0;color:#ffffff;font-size:28px;font-weight:800;letter-spacing:-0.5px;">Qmobiles</h1>
             <p style="margin:8px 0 0;color:#bae6fd;font-size:14px;">Transaction Completed</p>
           </td>
         </tr>
@@ -511,7 +518,7 @@ export async function sendCompletedEmail(params: {
               The agreed amount has been processed and the transaction is now finalized.
             </p>
             <p style="margin:16px 0 0;color:#475569;font-size:15px;line-height:1.7;">
-              Thank you for choosing <strong>TheMobiQ</strong> — India's trusted platform for selling pre-owned devices. 
+              Thank you for choosing <strong>Qmobiles</strong> — India's trusted platform for selling pre-owned devices. 
               We hope to serve you again! 💙
             </p>
           </td>
@@ -536,15 +543,15 @@ export async function sendCompletedEmail(params: {
         <tr>
           <td style="padding:0 40px 24px;text-align:center;">
             <p style="margin:0 0 12px;color:#475569;font-size:14px;">Got more devices to sell? We'd love to help!</p>
-            <a href="https://themobbiq.com/sell" style="display:inline-block;background:linear-gradient(135deg,#1e3a5f,#0ea5e9);color:#ffffff;text-decoration:none;padding:12px 28px;border-radius:50px;font-weight:700;font-size:14px;">Sell Another Device →</a>
+            <a href="https://www.qmobiles.in/sell" style="display:inline-block;background:linear-gradient(135deg,#1e3a5f,#0ea5e9);color:#ffffff;text-decoration:none;padding:12px 28px;border-radius:50px;font-weight:700;font-size:14px;">Sell Another Device →</a>
           </td>
         </tr>
 
         <!-- Footer -->
         <tr>
           <td style="background:#f8fafc;padding:24px 40px;border-top:1px solid #e2e8f0;text-align:center;">
-            <p style="margin:0 0 4px;font-size:13px;color:#64748b;">Questions? <a href="mailto:info@themobbiq.com" style="color:#0ea5e9;text-decoration:none;">info@themobbiq.com</a> · <a href="tel:+919593299593" style="color:#0ea5e9;text-decoration:none;">+91 95932 99593</a></p>
-            <p style="margin:8px 0 0;font-size:12px;color:#94a3b8;">© ${new Date().getFullYear()} TheMobiQ. J.P Nagar, Phase 1, Bengaluru 560078.</p>
+            <p style="margin:0 0 4px;font-size:13px;color:#64748b;">Questions? <a href="mailto:sell@qmobiles.in" style="color:#0ea5e9;text-decoration:none;">sell@qmobiles.in</a> · <a href="tel:+917795470588" style="color:#0ea5e9;text-decoration:none;">+91 77954 70588</a></p>
+            <p style="margin:8px 0 0;font-size:12px;color:#94a3b8;">© ${new Date().getFullYear()} Qmobiles. J.P Nagar, Phase 1, Bengaluru 560078.</p>
           </td>
         </tr>
       </table>
@@ -554,23 +561,131 @@ export async function sendCompletedEmail(params: {
 </html>`;
 
   const text = `
-TheMobiQ – Order Completed 🎉
+Qmobiles – Order Completed 🎉
 Hi ${params.customerName},
 
 Your order for ${params.modelName} (${params.variantName}) has been successfully completed.
 Amount Received: ₹${params.quotedPrice.toLocaleString("en-IN")}
 Reference ID: ${params.leadId}
 
-Thank you for choosing TheMobiQ! We hope to serve you again.
+Thank you for choosing Qmobiles! We hope to serve you again.
 
 
-For queries: info@themobbiq.com | +91 95932 99593
+For queries: sell@qmobiles.in | +91 77954 70588
 `;
 
   await transporter.sendMail({
     from: `"${fromName}" <${fromEmail}>`,
     to: params.customerEmail,
-    subject: `🎉 TheMobiQ – Your order is completed. Thank you, ${params.customerName}!`,
+    subject: `🎉 Qmobiles – Your order is completed. Thank you, ${params.customerName}!`,
+    html,
+    text,
+  });
+}
+
+// ──────────────────────────────────────────────
+// Quotation Updated Email (custom / other devices)
+// ──────────────────────────────────────────────
+
+export async function sendQuoteUpdatedEmail(params: {
+  customerName: string;
+  customerEmail: string;
+  leadId: string;
+  brandName?: string;
+  modelName: string;
+  variantName?: string;
+  quotedPrice: number;
+}) {
+  const transporter = createTransporter();
+  const fromName = process.env.SMTP_FROM_NAME ?? "Qmobiles";
+  const fromEmail = process.env.SMTP_FROM_EMAIL ?? process.env.SMTP_USER!;
+
+  const deviceName = [params.brandName, params.modelName].filter(Boolean).join(" ");
+  const variant = params.variantName ? ` (${params.variantName})` : "";
+
+  const html = `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Qmobiles – Your Quotation</title>
+</head>
+<body style="margin:0;padding:0;background:#f1f5f9;font-family:'Segoe UI',Helvetica,Arial,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f1f5f9;padding:32px 0;">
+    <tr><td align="center">
+      <table width="600" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08);">
+
+        <!-- Header -->
+        <tr>
+          <td style="background:linear-gradient(135deg,#1e3a5f 0%,#0ea5e9 100%);padding:32px 40px;text-align:center;">
+            <h1 style="margin:0;color:#ffffff;font-size:28px;font-weight:800;letter-spacing:-0.5px;">Qmobiles</h1>
+            <p style="margin:8px 0 0;color:#bae6fd;font-size:14px;">Your Quotation Is Ready</p>
+          </td>
+        </tr>
+
+        <!-- Greeting -->
+        <tr>
+          <td style="padding:36px 40px 0;">
+            <h2 style="margin:0 0 8px;font-size:22px;color:#0f172a;">Hi ${params.customerName} 👋</h2>
+            <p style="margin:0;color:#475569;font-size:15px;line-height:1.7;">
+              We have reviewed your device details and prepared our best offer for your
+              <strong>${deviceName}${variant}</strong>.
+            </p>
+            <p style="margin:14px 0 0;color:#475569;font-size:15px;line-height:1.7;">
+              Our team will <strong>contact you soon</strong> to confirm the quotation and schedule your free doorstep pickup.
+            </p>
+            <p style="margin:12px 0 0;color:#475569;font-size:13px;">Reference ID: <code style="background:#f1f5f9;padding:2px 8px;border-radius:4px;font-family:monospace;font-weight:600;">${params.leadId}</code></p>
+          </td>
+        </tr>
+
+        <!-- Quotation Highlight -->
+        <tr>
+          <td style="padding:24px 40px;">
+            <table width="100%" cellpadding="0" cellspacing="0" style="background:linear-gradient(135deg,#ecfdf5,#d1fae5);border:2px solid #10b981;border-radius:12px;">
+              <tr>
+                <td style="padding:24px;text-align:center;">
+                  <p style="margin:0 0 4px;font-size:12px;font-weight:700;color:#059669;letter-spacing:1.5px;text-transform:uppercase;">Qmobiles Quotation</p>
+                  <p style="margin:0;font-size:44px;font-weight:900;color:#0f172a;">₹${params.quotedPrice.toLocaleString("en-IN")}</p>
+                  <p style="margin:6px 0 0;font-size:12px;color:#6b7280;">We will contact you soon · Doorstep pickup available</p>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+
+        <!-- Footer -->
+        <tr>
+          <td style="background:#f8fafc;padding:24px 40px;border-top:1px solid #e2e8f0;text-align:center;">
+            <p style="margin:0 0 4px;font-size:13px;color:#64748b;">Questions? <a href="mailto:sell@qmobiles.in" style="color:#0ea5e9;text-decoration:none;">sell@qmobiles.in</a> · <a href="tel:+917795470588" style="color:#0ea5e9;text-decoration:none;">+91 77954 70588</a></p>
+            <p style="margin:8px 0 0;font-size:12px;color:#94a3b8;">© ${new Date().getFullYear()} Qmobiles. J.P Nagar, Phase 1, Bengaluru 560078.</p>
+          </td>
+        </tr>
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>`;
+
+  const text = `
+Qmobiles – Your Quotation Is Ready
+Reference ID: ${params.leadId}
+
+Hi ${params.customerName},
+
+We have reviewed your device details and prepared our best offer for your ${deviceName}${variant}.
+
+Quotation: ₹${params.quotedPrice.toLocaleString("en-IN")}
+
+Our team will contact you soon to confirm the quotation and schedule your free doorstep pickup.
+
+For queries: sell@qmobiles.in | +91 77954 70588
+`;
+
+  await transporter.sendMail({
+    from: `"${fromName}" <${fromEmail}>`,
+    to: params.customerEmail,
+    subject: `💰 Qmobiles – Your quotation for ${params.modelName} is ready`,
     html,
     text,
   });

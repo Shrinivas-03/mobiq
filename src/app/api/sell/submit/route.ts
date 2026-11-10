@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextResponse, after } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase";
 import { sendSellConfirmationEmail } from "@/lib/email";
 import { calculatePrice } from "@/lib/pricing";
@@ -82,40 +82,47 @@ export async function POST(request: Request) {
       );
     }
 
-    // ── Server-side price validation ──
-    // Recompute the price independently — never trust the client-submitted quotedPrice.
-    const config = await getModelPricingConfig(body.modelId);
-    const priceResult = calculatePrice({
-      modelId:        body.modelId,
-      brandId:        body.brandId,
-      variantId:      body.variantId,
-      mobileTurnsOn:  body.mobileTurnsOn,
-      accessories:    body.accessories,
-      hardwareDefects: body.hardwareDefects,
-      softwareDefects: body.softwareDefects,
-      batteryHealth:  body.batteryHealth,
-      batteryQuality: body.batteryQuality,
-      deviceAge:      body.deviceAge,
-    }, config ?? undefined);
+    // Custom / non-catalog devices bypass automated pricing and are quoted
+    // manually by the team. Catalog devices must always be price-validated.
+    const isOtherMobile = body.brandId === "other" || body.modelId === "custom";
 
-    if (!priceResult.success) {
-      return NextResponse.json(
-        { success: false, error: `Price validation failed: ${priceResult.error}` },
-        { status: 422 }
-      );
-    }
+    let serverPrice = 0;
 
-    const serverPrice = priceResult.finalPrice;
+    if (!isOtherMobile) {
+      // ── Server-side price validation for standard catalog models ──
+      const config = await getModelPricingConfig(body.modelId);
+      const priceResult = calculatePrice({
+        modelId:        body.modelId,
+        brandId:        body.brandId,
+        variantId:      body.variantId,
+        mobileTurnsOn:  body.mobileTurnsOn,
+        accessories:    body.accessories,
+        hardwareDefects: body.hardwareDefects,
+        softwareDefects: body.softwareDefects,
+        batteryHealth:  body.batteryHealth,
+        batteryQuality: body.batteryQuality,
+        deviceAge:      body.deviceAge,
+      }, config ?? undefined);
 
-    // Allow a ±1 rupee tolerance (integer rounding edge cases), reject anything beyond that.
-    if (Math.abs(body.quotedPrice - serverPrice) > 1) {
-      console.warn(
-        `[/api/sell/submit] Price tamper detected — client sent ₹${body.quotedPrice}, server computed ₹${serverPrice}`
-      );
-      return NextResponse.json(
-        { success: false, error: "Quoted price mismatch. Please restart the sell flow and try again." },
-        { status: 422 }
-      );
+      if (!priceResult.success) {
+        return NextResponse.json(
+          { success: false, error: `Price validation failed: ${priceResult.error}` },
+          { status: 422 }
+        );
+      }
+
+      serverPrice = priceResult.finalPrice;
+
+      // Allow a ±1 rupee tolerance (integer rounding edge cases), reject anything beyond that.
+      if (Math.abs(body.quotedPrice - serverPrice) > 1) {
+        console.warn(
+          `[/api/sell/submit] Price tamper detected — client sent ₹${body.quotedPrice}, server computed ₹${serverPrice}`
+        );
+        return NextResponse.json(
+          { success: false, error: "Quoted price mismatch. Please restart the sell flow and try again." },
+          { status: 422 }
+        );
+      }
     }
 
     // ── Build the row for Supabase ──
@@ -169,33 +176,39 @@ export async function POST(request: Request) {
       );
     }
 
-    const leadId = `MOBIQ-${data.id}`;
+    const leadId = `QMOBILES-${data.id}`;
     console.log(`[/api/sell/submit] Lead saved: ${leadId}`);
 
-    // ── Send confirmation email (non-blocking — failure won't break the response) ──
-    sendSellConfirmationEmail({
-      leadId,
-      customerName:    body.customerName,
-      customerEmail:   body.customerEmail,
-      customerPhone:   body.customerPhone,
-      customerAltPhone: body.customerAltPhone,
-      customerAddress: body.customerAddress,
-      brandName:   body.brandName,
-      modelName:   body.modelName,
-      variantName: body.variantName,
-      city:        body.city,
-      deviceAge:   body.deviceAge,
-      mobileTurnsOn: body.mobileTurnsOn,
-      accessories: body.accessories,
-      hardwareDefects: body.hardwareDefects,
-      softwareDefects: body.softwareDefects,
-      batteryHealth:  body.batteryHealth,
-      batteryQuality: body.batteryQuality,
-      isApple:     body.brandId === "apple",
-      quotedPrice: serverPrice,
-    }).catch((emailErr) => {
-      // Log email failures but don't surface them to the customer
-      console.error("[/api/sell/submit] Email sending failed:", emailErr);
+    // ── Send confirmation email after the response is finished ──
+    // `after` keeps the work alive on serverless platforms so the customer
+    // reliably gets their confirmation (failure won't break the response).
+    after(async () => {
+      try {
+        await sendSellConfirmationEmail({
+          leadId,
+          customerName:    body.customerName,
+          customerEmail:   body.customerEmail,
+          customerPhone:   body.customerPhone,
+          customerAltPhone: body.customerAltPhone,
+          customerAddress: body.customerAddress,
+          brandName:   body.brandName,
+          modelName:   body.modelName,
+          variantName: body.variantName,
+          city:        body.city,
+          deviceAge:   body.deviceAge,
+          mobileTurnsOn: body.mobileTurnsOn,
+          accessories: body.accessories,
+          hardwareDefects: body.hardwareDefects,
+          softwareDefects: body.softwareDefects,
+          batteryHealth:  body.batteryHealth,
+          batteryQuality: body.batteryQuality,
+          isApple:     body.brandId === "apple" || body.brandId === "iphone",
+          quotedPrice: serverPrice,
+        });
+      } catch (emailErr) {
+        // Log email failures but don't surface them to the customer
+        console.error("[/api/sell/submit] Email sending failed:", emailErr);
+      }
     });
 
     return NextResponse.json({

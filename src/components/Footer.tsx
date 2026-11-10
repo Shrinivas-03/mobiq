@@ -12,11 +12,11 @@ export default function Footer() {
           <div className="col-span-1">
             <Link href="/" className="mb-6 block">
               <Image 
-                src="/logo.png" 
-                alt="MobiQ Logo" 
-                width={150} 
-                height={50} 
-                className="h-12 w-auto object-contain cursor-pointer"
+                src="/new-logo.png" 
+                alt="Qmobiles Logo" 
+                width={114} 
+                height={80} 
+                className="h-20 w-auto object-contain cursor-pointer"
               />
             </Link>
           </div>
@@ -31,11 +31,11 @@ export default function Footer() {
               </p>
               <p>
                 <span className="block font-semibold text-gray-800">Phone</span>
-                <a href="tel:+919593299593" className="hover:text-green-600 transition-colors">+91 95932 99593</a>
+                <a href="tel:+917795470588" className="hover:text-green-600 transition-colors">+91 77954 70588</a>
               </p>
               <p>
                 <span className="block font-semibold text-gray-800">Email</span>
-                <a href="mailto:info@themobbiq.com" className="hover:text-green-600 transition-colors">info@themobbiq.com</a>
+                <a href="mailto:sell@qmobiles.in" className="hover:text-green-600 transition-colors">sell@qmobiles.in</a>
               </p>
               
               <div className="flex gap-4 pt-2">
@@ -79,7 +79,7 @@ export default function Footer() {
       {/* Bottom Bar */}
       <div className="bg-gray-900 border-t border-gray-800 p-4 pb-24 md:pb-6">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row md:justify-center items-center gap-4 md:gap-12 text-xs text-gray-400">
-           <p>© 2026 MobiQ. All rights reserved.</p>
+           <p>© 2026 Qmobiles. All rights reserved.</p>
            <p>Design and Developed by Codemates India</p>
         </div>
       </div>

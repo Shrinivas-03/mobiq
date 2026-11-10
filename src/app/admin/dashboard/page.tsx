@@ -33,6 +33,9 @@ export default function AdminDashboard() {
   const [selectedLead, setSelectedLead] = useState<any>(null);
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
   const [actualAmount, setActualAmount] = useState<string>('');
+  const [quoteAmount, setQuoteAmount] = useState<string>('');
+  const [isUpdatingQuote, setIsUpdatingQuote] = useState(false);
+  const [quoteFeedback, setQuoteFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
   const [inventory, setInventory] = useState<any[]>([]);
   const [queries, setQueries] = useState<any[]>([]);
   const [queryFilter, setQueryFilter] = useState('all');
@@ -57,13 +60,33 @@ export default function AdminDashboard() {
   const [isUploadingLogo, setIsUploadingLogo] = useState(false);
   const [brandForm, setBrandForm] = useState({ id: '', name: '', logo_url: '/apple.png' });
 
+  const APPLE_DEFAULT_VARIANT_PRICES: Record<string, number> = {
+    "64gb": 21000,
+    "128gb": 25500,
+    "256gb": 30000,
+    "512gb": 34500,
+    "1tb": 37500,
+    "2tb": 40500,
+  };
+
+  const ANDROID_DEFAULT_VARIANT_PRICES: Record<string, number> = {
+    "64gb": 21000,
+    "6_128": 25500,
+    "8_128": 27000,
+    "8_256": 30000,
+    "12_256": 32400,
+    "12_512": 34500,
+    "12_1tb": 37500,
+    "16_2tb": 40500,
+  };
+
   const DEFAULT_PRICING_CONFIG = {
     battery: {
       type: 'android',
       deductions: { High: 0, Average: 1200, Poor: 3000 },
       iphoneDeductions: { "95_100": 0, "90_94": 800, "85_89": 1800, "80_84": 3500, "75_79": 5500, "below_75": 8000 }
     },
-    variantPrices: { "64gb": 21000, "6_128": 25500, "8_128": 27000, "8_256": 30000, "12_256": 32400, "12_512": 34500 },
+    variantPrices: { ...ANDROID_DEFAULT_VARIANT_PRICES },
     ageDeductions: { "0_3": 0.05, "3_6": 0.12, "6_11": 0.22, "11_plus": 0.38 },
     hardware: { screen: 3000, dead: 3500, body: 1200, panel: 2400, touch: 2700, button: 1000, bent: 2000, loose: 1500 },
     software: { wifi: 1200, mic: 1200, faceid: 2500, charge: 1200, camera: 2000, bluetooth: 1000, fingerprint: 1200 },
@@ -151,6 +174,12 @@ export default function AdminDashboard() {
     };
     checkAuth();
   }, [router]);
+
+  // Reset quotation form whenever a different lead is opened
+  useEffect(() => {
+    setQuoteAmount('');
+    setQuoteFeedback(null);
+  }, [selectedLead?.id]);
 
   const fetchLeads = async () => {
     try {
@@ -307,9 +336,48 @@ export default function AdminDashboard() {
     }
   };
 
+  const sendQuotation = async () => {
+    if (!selectedLead) return;
+
+    const price = Math.round(Number(quoteAmount));
+    if (!Number.isFinite(price) || price <= 0) {
+      setQuoteFeedback({ type: 'error', message: 'Enter a valid quotation amount greater than 0.' });
+      return;
+    }
+
+    setIsUpdatingQuote(true);
+    setQuoteFeedback(null);
+    try {
+      const res = await fetch('/api/sell/update-quote', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: selectedLead.id, quotedPrice: price }),
+      });
+      const data = await res.json();
+
+      if (data.success) {
+        setLeads(prev => prev.map(l => l.id === selectedLead.id ? { ...l, quoted_price: data.lead.quoted_price } : l));
+        setSelectedLead((prev: any) => prev ? { ...prev, quoted_price: data.lead.quoted_price } : prev);
+        setQuoteAmount('');
+        setQuoteFeedback({
+          type: data.emailSent ? 'success' : 'error',
+          message: data.emailSent
+            ? `Quotation of ₹${Number(data.lead.quoted_price).toLocaleString('en-IN')} saved and emailed to ${selectedLead.customer_email}.`
+            : 'Quotation saved, but the email could not be sent. Please check the SMTP settings.',
+        });
+      } else {
+        setQuoteFeedback({ type: 'error', message: data.error || 'Failed to send quotation.' });
+      }
+    } catch (error) {
+      console.error(error);
+      setQuoteFeedback({ type: 'error', message: 'Network error while sending quotation.' });
+    } finally {
+      setIsUpdatingQuote(false);
+    }
+  };
+
   // Inventory filter state
-  const uniqueInvBrands = Array.from(new Set(inventory.map((i: any) => i.brand_name))).filter(Boolean);
-  const filteredInventory = inventory.filter((item: any) => {
+  const uniqueInvBrands = Array.from(new Set(inventory.map((i: any) => i.brand_name))).filter(Boolean);  const filteredInventory = inventory.filter((item: any) => {
     const matchStatus = invStatusFilter === 'all' || item.status === invStatusFilter;
     const matchBrand  = invBrandFilter === 'all'  || item.brand_name === invBrandFilter;
     const q = invSearchQuery.toLowerCase();
@@ -327,8 +395,16 @@ export default function AdminDashboard() {
   const [brandFilter, setBrandFilter]   = useState('all');
 
   // Filtered leads
+  const isOtherLead = (l: any) =>
+    l.brand_id === 'other' ||
+    l.model_id === 'custom' ||
+    Number(l.quoted_price) === 0;
+
+  const catalogLeadsList = leads.filter(l => !isOtherLead(l));
+  const otherLeadsList = leads.filter(l => isOtherLead(l));
+
   const uniqueBrands = Array.from(new Set(leads.map((l: any) => l.brand_name))).filter(Boolean);
-  const filteredLeads = leads.filter((lead: any) => {
+  const filteredLeads = catalogLeadsList.filter((lead: any) => {
     const matchStatus = statusFilter === 'all' || lead.status === statusFilter;
     const matchBrand  = brandFilter === 'all'  || lead.brand_name === brandFilter;
     const q = searchQuery.toLowerCase();
@@ -338,6 +414,21 @@ export default function AdminDashboard() {
       lead.model_name?.toLowerCase().includes(q) ||
       lead.city?.toLowerCase().includes(q);
     return matchStatus && matchBrand && matchSearch;
+  });
+
+  const [otherSearchQuery, setOtherSearchQuery] = useState('');
+  const [otherStatusFilter, setOtherStatusFilter] = useState('all');
+
+  const filteredOtherLeads = otherLeadsList.filter((lead: any) => {
+    const matchStatus = otherStatusFilter === 'all' || lead.status === otherStatusFilter;
+    const q = otherSearchQuery.toLowerCase();
+    const matchSearch = !q ||
+      lead.customer_name?.toLowerCase().includes(q) ||
+      lead.customer_phone?.includes(q) ||
+      lead.brand_name?.toLowerCase().includes(q) ||
+      lead.model_name?.toLowerCase().includes(q) ||
+      lead.city?.toLowerCase().includes(q);
+    return matchStatus && matchSearch;
   });
 
   const handleLogout = async () => {
@@ -361,7 +452,8 @@ export default function AdminDashboard() {
 
   const tabs = [
     { id: 'analytics', label: 'Analytics', icon: BarChart3 },
-    { id: 'leads', label: 'Leads View', icon: Users },
+    { id: 'leads', label: 'Instant Quote Leads', icon: Users },
+    { id: 'other_requests', label: 'Other Mobiles Requests', icon: Smartphone },
     { id: 'queries', label: 'Support Queries', icon: MessageSquare },
     { id: 'catalog', label: 'Sell Catalog (Brands/Models)', icon: Database },
     { id: 'models', label: 'Models in Stock', icon: Smartphone },
@@ -383,7 +475,7 @@ export default function AdminDashboard() {
       {/* Sidebar */}
       <aside className={`fixed md:relative z-20 w-64 bg-zinc-950 text-white min-h-screen transition-transform duration-300 md:translate-x-0 ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}`}>
         <div className="p-6 flex items-center justify-between">
-          <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">MobiQ Admin</h1>
+          <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">Qmobiles Admin</h1>
           <button className="md:hidden text-zinc-400" onClick={() => setIsMobileMenuOpen(false)}>
             <X className="w-6 h-6" />
           </button>
@@ -524,8 +616,8 @@ export default function AdminDashboard() {
                 <div className="bg-white rounded-2xl shadow-sm border border-zinc-200 overflow-hidden">
                   <div className="p-5 border-b border-zinc-200">
                     <div className="flex flex-wrap gap-3 items-center justify-between">
-                      <h3 className="text-lg font-bold text-zinc-800">Sell Leads
-                        <span className="ml-2 text-sm font-medium text-zinc-400">({filteredLeads.length} of {leads.length})</span>
+                      <h3 className="text-lg font-bold text-zinc-800">Instant Quote Leads (iPhone & Samsung)
+                        <span className="ml-2 text-sm font-medium text-zinc-400">({filteredLeads.length} of {catalogLeadsList.length})</span>
                       </h3>
                       <div className="flex flex-wrap gap-2 items-center">
                         {/* Search */}
@@ -619,10 +711,135 @@ export default function AdminDashboard() {
                             </td>
                           </tr>
                         ))}
-                        {leads.length === 0 && (
+                        {filteredLeads.length === 0 && (
                           <tr>
-                            <td colSpan={6} className="px-6 py-8 text-center text-zinc-500">
-                              No sell leads available yet.
+                            <td colSpan={7} className="px-6 py-8 text-center text-zinc-500">
+                              No instant quote leads available yet.
+                            </td>
+                          </tr>
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+
+            {/* OTHER MOBILES REQUESTS TAB */}
+            {activeTab === 'other_requests' && (
+              <motion.div key="other_requests" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
+                <div className="bg-white rounded-2xl shadow-sm border border-zinc-200 overflow-hidden">
+                  <div className="p-5 border-b border-zinc-200">
+                    <div className="flex flex-wrap gap-3 items-center justify-between">
+                      <div>
+                        <h3 className="text-lg font-bold text-zinc-800">Other Mobiles Requests
+                          <span className="ml-2 text-sm font-medium text-zinc-400">({filteredOtherLeads.length} of {otherLeadsList.length})</span>
+                        </h3>
+                        <p className="text-xs text-zinc-500 mt-0.5">Requests submitted by customers for devices without pre-calculated automated prices. Contact them within 24 hours.</p>
+                      </div>
+                      <div className="flex flex-wrap gap-2 items-center">
+                        <div className="relative">
+                          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400" />
+                          <input
+                            type="text"
+                            placeholder="Search name, model, brand..."
+                            value={otherSearchQuery}
+                            onChange={e => setOtherSearchQuery(e.target.value)}
+                            className="pl-9 pr-3 py-2 text-sm border border-zinc-200 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 w-52"
+                          />
+                        </div>
+                        <select
+                          value={otherStatusFilter}
+                          onChange={e => setOtherStatusFilter(e.target.value)}
+                          className="text-sm border border-zinc-200 rounded-lg px-3 py-2 bg-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                        >
+                          <option value="all">All Statuses</option>
+                          <option value="pending">Pending</option>
+                          <option value="contacted">Contacted</option>
+                          <option value="picked_up">Scheduled Pickup</option>
+                          <option value="completed">Completed</option>
+                          <option value="cancelled">Cancelled</option>
+                        </select>
+                        {(otherSearchQuery || otherStatusFilter !== 'all') && (
+                          <button
+                            onClick={() => { setOtherSearchQuery(''); setOtherStatusFilter('all'); }}
+                            className="text-xs text-red-500 hover:text-red-700 font-semibold px-2 py-2 rounded-lg hover:bg-red-50 transition-all"
+                          >✕ Clear</button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left text-sm text-zinc-600">
+                      <thead className="bg-zinc-50 text-zinc-500 uppercase text-xs font-semibold">
+                        <tr>
+                          <th className="px-6 py-4">Request ID</th>
+                          <th className="px-6 py-4">Customer</th>
+                          <th className="px-6 py-4">Brand & Model</th>
+                          <th className="px-6 py-4">Specs (RAM / Storage)</th>
+                          <th className="px-6 py-4">City</th>
+                          <th className="px-6 py-4">Turns On?</th>
+                          <th className="px-6 py-4">Quotation</th>
+                          <th className="px-6 py-4">Status</th>
+                          <th className="px-6 py-4 text-right">Action</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-zinc-200">
+                        {filteredOtherLeads.map((lead: any) => (
+                          <tr key={lead.id} className="hover:bg-zinc-50">
+                            <td className="px-6 py-4">
+                              <p className="font-mono text-zinc-900 text-sm">{lead.id.substring(0, 8)}...</p>
+                              <p className="text-xs text-zinc-400 mt-0.5">{new Date(lead.created_at).toLocaleDateString()}</p>
+                            </td>
+                            <td className="px-6 py-4">
+                              <p className="font-medium text-zinc-900">{lead.customer_name}</p>
+                              <a href={`tel:${lead.customer_phone}`} className="text-xs text-blue-600 hover:underline font-mono mt-0.5 block">{lead.customer_phone}</a>
+                            </td>
+                            <td className="px-6 py-4">
+                              <span className="font-bold text-zinc-900">{lead.brand_name}</span>
+                              <p className="text-sm text-zinc-700 font-medium">{lead.model_name}</p>
+                            </td>
+                            <td className="px-6 py-4">
+                              <span className="inline-block bg-zinc-100 text-zinc-800 px-2 py-1 rounded text-xs font-medium">
+                                {lead.variant_name || "N/A"}
+                              </span>
+                            </td>
+                            <td className="px-6 py-4">{lead.city}</td>
+                            <td className="px-6 py-4">
+                              <span className={`inline-flex px-2 py-0.5 rounded text-xs font-bold ${
+                                lead.mobile_turns_on ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+                              }`}>
+                                {lead.mobile_turns_on ? 'Yes' : 'No'}
+                              </span>
+                            </td>
+                            <td className="px-6 py-4">
+                              {Number(lead.quoted_price) > 0 ? (
+                                <span className="font-bold text-emerald-600">₹{Number(lead.quoted_price).toLocaleString('en-IN')}</span>
+                              ) : (
+                                <span className="inline-flex px-2 py-0.5 rounded text-xs font-semibold bg-amber-100 text-amber-700">Pending</span>
+                              )}
+                            </td>
+                            <td className="px-6 py-4">
+                              <span className={`px-3 py-1 rounded-full text-xs font-bold ${
+                                lead.status === 'completed' ? 'bg-green-100 text-green-700' :
+                                lead.status === 'contacted' ? 'bg-blue-100 text-blue-700' :
+                                lead.status === 'pending' ? 'bg-amber-100 text-amber-700' :
+                                'bg-zinc-100 text-zinc-700'
+                              }`}>
+                                {lead.status.toUpperCase()}
+                              </span>
+                            </td>
+                            <td className="px-6 py-4 text-right">
+                              <button onClick={() => setSelectedLead(lead)} className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" title="View Full Inspection & Details">
+                                <Eye className="w-5 h-5" />
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                        {filteredOtherLeads.length === 0 && (
+                          <tr>
+                            <td colSpan={9} className="px-6 py-8 text-center text-zinc-500">
+                              No &quot;Other Mobile&quot; requests received yet.
                             </td>
                           </tr>
                         )}
@@ -834,21 +1051,24 @@ export default function AdminDashboard() {
                                   onClick={() => {
                                   const dbConfig = m.pricing_config || {};
                                   const base = m.base_price || 30000;
-                                  const variantPrices = dbConfig.variantPrices || (dbConfig.variantMultipliers ? {
-                                    "64gb": Math.round(base * (dbConfig.variantMultipliers["64gb"] ?? 0.70)),
-                                    "6_128": Math.round(base * (dbConfig.variantMultipliers["6_128"] ?? 0.85)),
-                                    "8_128": Math.round(base * (dbConfig.variantMultipliers["8_128"] ?? 0.90)),
-                                    "8_256": Math.round(base * (dbConfig.variantMultipliers["8_256"] ?? 1.00)),
-                                    "12_256": Math.round(base * (dbConfig.variantMultipliers["12_256"] ?? 1.08)),
-                                    "12_512": Math.round(base * (dbConfig.variantMultipliers["12_512"] ?? 1.15)),
-                                  } : {
-                                    "64gb": Math.round(base * 0.70),
-                                    "6_128": Math.round(base * 0.85),
-                                    "8_128": Math.round(base * 0.90),
-                                    "8_256": base,
-                                    "12_256": Math.round(base * 1.08),
-                                    "12_512": Math.round(base * 1.15),
-                                  });
+                                  const isAppleModel = m.brand_id === 'apple' || m.id.startsWith('ip');
+                                  const defaultPrices = isAppleModel ? APPLE_DEFAULT_VARIANT_PRICES : ANDROID_DEFAULT_VARIANT_PRICES;
+                                  
+                                  const variantPrices: Record<string, number> = dbConfig.variantPrices
+                                    ? { ...dbConfig.variantPrices }
+                                    : (dbConfig.variantMultipliers
+                                        ? Object.fromEntries(
+                                            Object.entries(dbConfig.variantMultipliers).map(([k, mult]) => [
+                                              k,
+                                              Math.round(base * Number(mult)),
+                                            ])
+                                          )
+                                        : Object.fromEntries(
+                                            Object.keys(defaultPrices).map((k) => [
+                                              k,
+                                              Math.round(base * (k === '256gb' || k === '8_256' ? 1.0 : k === '64gb' ? 0.70 : k === '128gb' || k === '6_128' ? 0.85 : k === '8_128' ? 0.90 : k === '12_256' ? 1.08 : k === '512gb' || k === '12_512' ? 1.15 : k === '1tb' || k === '12_1tb' ? 1.25 : 1.35))
+                                            ])
+                                          ));
 
                                   const mergedConfig = {
                                     ...DEFAULT_PRICING_CONFIG,
@@ -1011,13 +1231,17 @@ export default function AdminDashboard() {
                             <select
                               value={modelForm.brand_id}
                               onChange={(e) => {
-                                const isApple = e.target.value === 'apple';
+                                const selectedBrandId = e.target.value;
+                                const isApple = selectedBrandId === 'apple';
+                                const defaultPrices = isApple ? APPLE_DEFAULT_VARIANT_PRICES : ANDROID_DEFAULT_VARIANT_PRICES;
                                 setModelForm({
                                   ...modelForm,
-                                  brand_id: e.target.value,
+                                  brand_id: selectedBrandId,
+                                  base_price: defaultPrices["256gb"] || defaultPrices["8_256"] || modelForm.base_price,
                                   pricing_config: {
                                     ...modelForm.pricing_config,
-                                    battery: { type: isApple ? 'iphone' : 'android' }
+                                    battery: { type: isApple ? 'iphone' : 'android' },
+                                    variantPrices: { ...defaultPrices }
                                   }
                                 });
                               }}
@@ -1077,10 +1301,25 @@ export default function AdminDashboard() {
                           <div>
                             <label className="text-xs font-bold text-zinc-700 block mb-1">Storage Variant Base Prices (₹)</label>
                             <div className="grid grid-cols-2 gap-2 border border-zinc-200 rounded-xl p-3 bg-zinc-50/50">
-                              {Object.keys(DEFAULT_PRICING_CONFIG.variantPrices).map((variantKey) => (
+                              {Object.keys(
+                                (modelForm.brand_id === 'apple' || modelForm.id.startsWith('ip'))
+                                  ? APPLE_DEFAULT_VARIANT_PRICES
+                                  : ANDROID_DEFAULT_VARIANT_PRICES
+                              ).map((variantKey) => {
+                                const variantDisplay =
+                                  variantKey === '64gb' ? '64 GB' :
+                                  variantKey === '128gb' ? '128 GB' :
+                                  variantKey === '256gb' ? '256 GB' :
+                                  variantKey === '512gb' ? '512 GB' :
+                                  variantKey === '1tb' ? '1 TB' :
+                                  variantKey === '2tb' ? '2 TB' :
+                                  variantKey.includes('_') ? `${variantKey.replace('_', 'GB / ')}GB` :
+                                  variantKey.toUpperCase();
+
+                                return (
                                 <div key={variantKey} className="flex flex-col">
                                   <span className="text-[10px] text-zinc-500 font-medium">
-                                    {variantKey === '64gb' ? '64 GB' : (variantKey.includes('_') ? `${variantKey.replace('_', 'GB / ')}GB` : variantKey.toUpperCase())}
+                                    {variantDisplay}
                                   </span>
                                   <input
                                     type="number"
@@ -1094,7 +1333,7 @@ export default function AdminDashboard() {
                                       };
                                       setModelForm({
                                         ...modelForm,
-                                        base_price: updatedPrices["8_256"] || updatedPrices["6_128"] || val || modelForm.base_price,
+                                        base_price: updatedPrices["256gb"] || updatedPrices["8_256"] || updatedPrices["128gb"] || updatedPrices["6_128"] || val || modelForm.base_price,
                                         pricing_config: {
                                           ...modelForm.pricing_config,
                                           variantPrices: updatedPrices
@@ -1104,7 +1343,8 @@ export default function AdminDashboard() {
                                     className="border border-zinc-300 rounded p-1 text-xs mt-0.5 focus:ring-1 focus:ring-blue-500 font-medium"
                                   />
                                 </div>
-                              ))}
+                              );
+                              })}
                             </div>
                           </div>
 
@@ -1290,7 +1530,12 @@ export default function AdminDashboard() {
                         </button>
                         <button
                           onClick={async () => {
-                            if (!modelForm.id || !modelForm.name || !modelForm.pricing_config.variantPrices?.["8_256"]) return alert('All fields required — fill in at least the 8GB / 256GB storage variant price');
+                            const isAppleModel = modelForm.brand_id === 'apple' || modelForm.id.startsWith('ip');
+                            const keyVariant = isAppleModel ? "256gb" : "8_256";
+                            const hasPrice = modelForm.pricing_config.variantPrices?.[keyVariant] || Object.values(modelForm.pricing_config.variantPrices || {}).some(v => Number(v) > 0);
+                            if (!modelForm.id || !modelForm.name || !hasPrice) {
+                              return alert(`All fields required — please fill in model id, name, and at least one variant price (e.g. ${isAppleModel ? '256 GB' : '8GB / 256GB'})`);
+                            }
                             
                             const method = isEditingModel ? 'PUT' : 'POST';
                             await fetch('/api/admin/models', {
@@ -1663,7 +1908,7 @@ export default function AdminDashboard() {
                             <div className="mt-4 pt-4 border-t border-blue-200">
                               <label className="block text-sm font-semibold text-green-800 mb-1">Actual Amount Paid (₹)</label>
                               <p className="text-xs text-zinc-500 mb-2">
-                                Quoted: <strong className="text-zinc-700">₹{selectedLead.quoted_price?.toLocaleString()}</strong>
+                                Quoted: <strong className="text-zinc-700">{Number(selectedLead.quoted_price) > 0 ? `₹${selectedLead.quoted_price?.toLocaleString()}` : "Custom valuation"}</strong>
                                 {selectedLead.actual_amount && <> · Previously saved: <strong className="text-green-700">₹{selectedLead.actual_amount?.toLocaleString()}</strong></>}
                               </p>
                               <div className="flex gap-2">
@@ -1699,6 +1944,46 @@ export default function AdminDashboard() {
                           )}
                         </div>
                       </div>
+
+                      {isOtherLead(selectedLead) && (
+                        <div>
+                          <h4 className="text-xs font-bold text-zinc-400 uppercase tracking-widest mb-3">Send Quotation</h4>
+                          <div className="bg-emerald-50/60 p-5 rounded-2xl border border-emerald-100 shadow-sm">
+                            <p className="text-sm text-zinc-600 mb-3">
+                              {Number(selectedLead.quoted_price) > 0
+                                ? <>Current quotation: <strong className="text-emerald-700">₹{Number(selectedLead.quoted_price).toLocaleString('en-IN')}</strong></>
+                                : "No quotation has been sent for this request yet."}
+                            </p>
+                            <label className="block text-sm font-semibold text-emerald-900 mb-1">New Quotation (₹)</label>
+                            <div className="relative">
+                              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-emerald-700 font-semibold text-sm">₹</span>
+                              <input
+                                type="number"
+                                min={1}
+                                placeholder={Number(selectedLead.quoted_price) > 0 ? String(selectedLead.quoted_price) : 'e.g. 12000'}
+                                value={quoteAmount}
+                                onChange={(e) => { setQuoteAmount(e.target.value); setQuoteFeedback(null); }}
+                                className="w-full pl-7 pr-3 py-2.5 border border-emerald-300 rounded-xl text-sm font-semibold focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 bg-white"
+                              />
+                            </div>
+                            <button
+                              onClick={sendQuotation}
+                              disabled={isUpdatingQuote}
+                              className="mt-3 w-full px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-sm font-bold disabled:opacity-50 transition-all"
+                            >
+                              {isUpdatingQuote ? 'Sending Quotation...' : 'Send Quotation Email'}
+                            </button>
+                            {quoteFeedback && (
+                              <p className={`mt-3 text-xs font-medium ${quoteFeedback.type === 'success' ? 'text-emerald-700' : 'text-red-600'}`}>
+                                {quoteFeedback.message}
+                              </p>
+                            )}
+                            <p className="text-xs text-emerald-800/70 mt-3">
+                              The customer receives this quotation by email, along with a note that our team will contact them soon.
+                            </p>
+                          </div>
+                        </div>
+                      )}
                     </div>
 
                     {/* Right Col: Device Condition */}
@@ -1716,8 +2001,14 @@ export default function AdminDashboard() {
                             <p className="text-sm text-zinc-500 mt-2">Device Age: <span className="font-bold text-zinc-800">{selectedLead.device_age.replace('_', '-')} Months</span></p>
                           </div>
                           <div className="text-right relative z-10">
-                            <p className="text-xs font-bold text-zinc-500 uppercase tracking-wider mb-1">Quoted Value</p>
-                            <p className="text-3xl font-black text-green-600 tracking-tight">₹{selectedLead.quoted_price?.toLocaleString()}</p>
+                            <p className="text-xs font-bold text-zinc-500 uppercase tracking-wider mb-1">
+                              {isOtherLead(selectedLead) ? "Custom Quote" : "Quoted Value"}
+                            </p>
+                            {isOtherLead(selectedLead) && Number(selectedLead.quoted_price) === 0 ? (
+                              <p className="text-lg font-black text-amber-600 tracking-tight leading-tight max-w-[120px]">Awaiting Valuation</p>
+                            ) : (
+                              <p className="text-3xl font-black text-green-600 tracking-tight">₹{selectedLead.quoted_price?.toLocaleString()}</p>
+                            )}
                           </div>
                         </div>
                       </div>

@@ -1,9 +1,9 @@
 import { MetadataRoute } from "next";
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = "https://www.themobiq.com";
+  const baseUrl = "https://www.qmobiles.in";
   
-  // All active pages on MobiQ
+  // All active pages on Qmobiles
   const routes = [
     "",
     "/about-us",

@@ -55,7 +55,7 @@ export default function TestimonialsPage() {
               Client Testimonials
             </h1>
             <p className="text-slate-300 mt-3 max-w-md mx-auto text-sm md:text-base font-medium">
-              See what our customers say about their experience selling phones to MobiQ.
+              See what our customers say about their experience selling phones to Qmobiles.
             </p>
           </div>
         </div>

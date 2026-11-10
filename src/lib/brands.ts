@@ -19,6 +19,17 @@ export interface Model {
   created_at?: string;
 }
 
+// Brands that use the instant, pre-calculated quote flow.
+// Every other brand goes through the "Other Brands" custom request form.
+const INSTANT_QUOTE_BRAND_IDS = ["apple", "iphone", "samsung"];
+
+const OTHER_BRAND: Brand = {
+  id: "other",
+  name: "Other Brands",
+  logo_url: "/moto.png",
+  is_active: true,
+};
+
 // ── Fetch active brands for public UI ──
 export async function getActiveBrands(): Promise<Brand[]> {
   const { data, error } = await supabase
@@ -28,22 +39,19 @@ export async function getActiveBrands(): Promise<Brand[]> {
     .order("name", { ascending: true });
 
   if (error || !data || data.length === 0) {
-    // Return fallback static brands if table empty or error occurs
+    // Default flagship brands with instant quote calculation
     return [
       { id: "apple", name: "Apple", logo_url: "/apple.png", is_active: true },
       { id: "samsung", name: "Samsung", logo_url: "/samsung.jpg", is_active: true },
-      { id: "google", name: "Google", logo_url: "/google.png", is_active: true },
-      { id: "oneplus", name: "OnePlus", logo_url: "/oneplus.png", is_active: true },
-      { id: "mi", name: "MI", logo_url: "/mi.png", is_active: true },
-      { id: "vivo", name: "Vivo", logo_url: "/vivo.png", is_active: true },
-      { id: "oppo", name: "Oppo", logo_url: "/oppo.png", is_active: true },
-      { id: "realme", name: "Realme", logo_url: "/realme.png", is_active: true },
-      { id: "iqoo", name: "iQOO", logo_url: "/iqoo.png", is_active: true },
-      { id: "motorola", name: "Motorola", logo_url: "/moto.png", is_active: true },
+      OTHER_BRAND,
     ];
   }
 
-  return data;
+  const instantQuoteBrands = data.filter((b) =>
+    INSTANT_QUOTE_BRAND_IDS.includes(b.id)
+  );
+
+  return [...instantQuoteBrands, OTHER_BRAND];
 }
 
 // ── Fetch active models by brand for public UI ──
@@ -65,55 +73,28 @@ export async function getActiveModels(brandId?: string): Promise<Model[]> {
         { id: "ip14pm", name: "iPhone 14 Pro Max" },
         { id: "ip14", name: "iPhone 14" },
       ],
+      iphone: [
+        { id: "ip15pm", name: "iPhone 15 Pro Max" },
+        { id: "ip15p", name: "iPhone 15 Pro" },
+        { id: "ip15", name: "iPhone 15" },
+        { id: "ip14pm", name: "iPhone 14 Pro Max" },
+        { id: "ip14", name: "iPhone 14" },
+      ],
       samsung: [
         { id: "s24u", name: "Galaxy S24 Ultra" },
         { id: "s24", name: "Galaxy S24" },
         { id: "s23u", name: "Galaxy S23 Ultra" },
       ],
-      google: [
-        { id: "p8p", name: "Pixel 8 Pro" },
-        { id: "p8", name: "Pixel 8" },
-        { id: "p7p", name: "Pixel 7 Pro" },
-      ],
-      oneplus: [
-        { id: "op12", name: "OnePlus 12" },
-        { id: "op12r", name: "OnePlus 12R" },
-        { id: "op11", name: "OnePlus 11" },
-      ],
-      mi: [
-        { id: "mi14u", name: "Xiaomi 14 Ultra" },
-        { id: "mi14", name: "Xiaomi 14" },
-        { id: "mi13p", name: "Xiaomi 13 Pro" },
-      ],
-      vivo: [
-        { id: "vx100p", name: "Vivo X100 Pro" },
-        { id: "vx100", name: "Vivo X100" },
-        { id: "vv29", name: "Vivo V29" },
-      ],
-      oppo: [
-        { id: "findn3", name: "Find N3 Flip" },
-        { id: "reno11p", name: "Reno 11 Pro" },
-        { id: "reno11", name: "Reno 11" },
-      ],
-      realme: [
-        { id: "rm12p", name: "Realme 12 Pro+" },
-        { id: "rm12", name: "Realme 12" },
-        { id: "rm11p", name: "Realme 11 Pro" },
-      ],
-      iqoo: [
-        { id: "iq12", name: "iQOO 12" },
-        { id: "iqneo9", name: "iQOO Neo 9 Pro" },
-        { id: "iq11", name: "iQOO 11" },
-      ],
-      motorola: [
-        { id: "motoe50", name: "Edge 50 Pro" },
-        { id: "motoe40", name: "Edge 40" },
-        { id: "razr40", name: "Razr 40 Ultra" },
-      ],
     };
 
-    if (brandId && STATIC_MODELS[brandId]) {
-      return STATIC_MODELS[brandId].map((m) => ({
+    if (brandId) {
+      const staticBrandModels = STATIC_MODELS[brandId];
+      if (!staticBrandModels) {
+        // Unknown/unsupported brand (e.g. a custom "other" brand) has no
+        // pre-calculated models. Never leak another brand's models here.
+        return [];
+      }
+      return staticBrandModels.map((m) => ({
         id: m.id,
         brand_id: brandId,
         name: m.name,
@@ -137,6 +118,50 @@ export async function getActiveModels(brandId?: string): Promise<Model[]> {
 }
 
 // ── Fetch dynamic model pricing configuration ──
+const APPLE_VARIANT_MULTIPLIERS: Record<string, number> = {
+  "64gb": 0.70,
+  "128gb": 0.85,
+  "256gb": 1.00,
+  "512gb": 1.15,
+  "1tb": 1.25,
+  "2tb": 1.35,
+};
+
+const ANDROID_VARIANT_MULTIPLIERS: Record<string, number> = {
+  "64gb": 0.70,
+  "6_128": 0.85,
+  "8_128": 0.90,
+  "8_256": 1.00,
+  "12_256": 1.08,
+  "12_512": 1.15,
+  "12_1tb": 1.25,
+  "16_2tb": 1.35,
+};
+
+/**
+ * Existing DB rows may still carry the legacy variant keys (6_128, 8_256…)
+ * or missing/zero values. Normalise them to the variant set the sell flow
+ * actually offers so every selectable variant has a real price.
+ */
+function normalizeVariantPrices(
+  basePrice: number,
+  existing: Record<string, number> | undefined,
+  isIphone: boolean
+): Record<string, number> {
+  const multipliers = isIphone ? APPLE_VARIANT_MULTIPLIERS : ANDROID_VARIANT_MULTIPLIERS;
+  const normalized: Record<string, number> = {};
+
+  for (const [key, multiplier] of Object.entries(multipliers)) {
+    const configured = existing?.[key];
+    normalized[key] =
+      configured !== undefined && configured !== null && Number(configured) > 0
+        ? Number(configured)
+        : Math.round(basePrice * multiplier);
+  }
+
+  return normalized;
+}
+
 export async function getModelPricingConfig(modelId: string): Promise<ModelPricingConfig | null> {
   const { data, error } = await supabase
     .from("models")
@@ -145,6 +170,8 @@ export async function getModelPricingConfig(modelId: string): Promise<ModelPrici
     .single();
 
   if (data && data.base_price) {
+    const isIphone = modelId.startsWith("ip");
+
     if (data.pricing_config && typeof data.pricing_config === "object") {
       const cfg = { ...data.pricing_config, basePrice: data.base_price };
       if (!cfg.variantPrices && cfg.variantMultipliers) {
@@ -153,6 +180,11 @@ export async function getModelPricingConfig(modelId: string): Promise<ModelPrici
           cfg.variantPrices[k] = Math.round(data.base_price * Number(mult));
         }
       }
+      cfg.variantPrices = normalizeVariantPrices(
+        data.base_price,
+        cfg.variantPrices,
+        isIphone
+      );
       return cfg;
     }
 
@@ -160,14 +192,7 @@ export async function getModelPricingConfig(modelId: string): Promise<ModelPrici
     // Default configuration template if custom pricing_config JSON isn't specified
     return {
       basePrice: bp,
-      variantPrices: {
-        "64gb": Math.round(bp * 0.70),
-        "6_128": Math.round(bp * 0.85),
-        "8_128": Math.round(bp * 0.90),
-        "8_256": bp,
-        "12_256": Math.round(bp * 1.08),
-        "12_512": Math.round(bp * 1.15),
-      },
+      variantPrices: normalizeVariantPrices(bp, undefined, isIphone),
       ageDeductions: {
         "0_3": 0.05,
         "3_6": 0.12,

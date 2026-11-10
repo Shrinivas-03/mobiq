@@ -17,7 +17,7 @@ export default function Testimonials() {
     {
       id: 3,
       name: "Maria DB",
-      text: "Sold my old iPhone in minutes and got better value compared to others check out MobiQ.",
+      text: "Sold my old iPhone in minutes and got better value compared to others check out Qmobiles.",
       rating: 5,
     }
   ];
@@ -27,7 +27,7 @@ export default function Testimonials() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col items-center">
         <div className="text-green-600 font-bold uppercase tracking-widest text-sm mb-3">SOME REVIEWS</div>
         <h2 className="text-3xl font-extrabold mb-12 text-gray-900 text-center">
-          Reviews on MobiQ
+          Reviews on Qmobiles
         </h2>
 
         {/* Horizontal Scroll Container */}

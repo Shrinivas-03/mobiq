@@ -68,10 +68,10 @@ export default function Hero() {
         {/* Text Content */}
         <div className="space-y-6">
           <div className="text-green-400 font-extrabold text-2xl tracking-widest uppercase animate-pulse">
-            MobiQ
+            Qmobiles
           </div>
           <h1 className="text-4xl sm:text-5xl md:text-6xl font-black leading-tight tracking-tight text-white mb-2 min-h-[160px]">
-            Welcome to <span className="bg-gradient-to-r from-green-400 to-emerald-300 bg-clip-text text-transparent">themobiq</span>
+            Welcome to <span className="bg-gradient-to-r from-green-400 to-emerald-300 bg-clip-text text-transparent">Qmobiles</span>
             <br />
             <span className="text-yellow-400 inline-block relative border-r-2 border-yellow-400 pr-1 animate-pulse">
               {currentText || "\u00A0"}
@@ -101,7 +101,7 @@ export default function Hero() {
             <div className="animate-float relative w-full h-[500px]">
               <Image
                 src="/hero-devices.png"
-                alt="MobiQ — Sell your old mobile phone for instant cash"
+                alt="Qmobiles — Sell your old mobile phone for instant cash"
                 fill
                 sizes="(max-width: 768px) 100vw, 50vw"
                 className="object-contain drop-shadow-2xl"

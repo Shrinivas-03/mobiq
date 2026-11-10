@@ -75,7 +75,7 @@ export default function AdminLogin() {
               <Lock className="w-8 h-8 text-white" />
             </motion.div>
             <h1 className="text-3xl font-bold text-white mb-2 tracking-tight">Welcome Back</h1>
-            <p className="text-zinc-400 text-sm">Sign in to the Mobiq Control Panel</p>
+            <p className="text-zinc-400 text-sm">Sign in to the Qmobiles Control Panel</p>
           </div>
 
           <form onSubmit={handleLogin} className="space-y-5">
@@ -162,7 +162,7 @@ export default function AdminLogin() {
         </div>
         
         <div className="text-center mt-8 text-zinc-500 text-sm">
-          <p>© {new Date().getFullYear()} Mobiq. All rights reserved.</p>
+          <p>© {new Date().getFullYear()} Qmobiles. All rights reserved.</p>
         </div>
       </motion.div>
     </div>

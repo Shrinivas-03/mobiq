@@ -60,8 +60,8 @@ Copy the printed hash. Then run this in Supabase SQL Editor (replace the placeho
 ```sql
 insert into public.admin_users (email, password_hash, name, role)
 values (
-  'admin@themobbiq.com',
-  '$2a$12$PASTE_YOUR_HASH_HERE',
+  'sell@qmobiles.in',
+  '$2b$12$DEQ5OJz8m1iOt5zQ9K4cC.CcyX7kxOSzbiGZdrRnJS0OysutrXRjW',
   'Admin User',
   'super_admin'
 );

@@ -12,14 +12,7 @@ interface BrandItem {
 const STATIC_BRANDS: BrandItem[] = [
   { name: "Apple", id: "apple", logo: "/apple.png" },
   { name: "Samsung", id: "samsung", logo: "/samsung.jpg" },
-  { name: "Google", id: "google", logo: "/google.png" },
-  { name: "OnePlus", id: "oneplus", logo: "/oneplus.png" },
-  { name: "MI", id: "mi", logo: "/mi.png" },
-  { name: "Vivo", id: "vivo", logo: "/vivo.png" },
-  { name: "Oppo", id: "oppo", logo: "/oppo.png" },
-  { name: "Realme", id: "realme", logo: "/realme.png" },
-  { name: "iQOO", id: "iqoo", logo: "/iqoo.png" },
-  { name: "Motorola", id: "motorola", logo: "/moto.png" },
+  { name: "Other Brands", id: "other", logo: "/moto.png" },
 ];
 
 export default function Brands() {
@@ -95,7 +88,7 @@ export default function Brands() {
       {/* Floating Whatsapp Button */}
       <div className="fixed bottom-6 left-6 z-50">
         <a
-          href="https://wa.me/919593299593"
+          href="https://wa.me/917795470588"
           target="_blank"
           rel="noopener noreferrer"
           className="bg-green-500 hover:bg-green-600 text-white w-14 h-14 rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition-transform"
